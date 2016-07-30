@@ -57,7 +57,7 @@ uint32_t dbg_get_cs(void)
 {
 	uint32_t cs;
 
-	asm(
+	asm volatile (
 		"push    %%cs;"
 		"pop     %%eax;"
 		/* Outputs  */ : "=a" (cs)
@@ -98,7 +98,7 @@ int dbg_init_gates(void)
  */
 int dbg_load_idt(struct dbg_idtr *idtr)
 {
-	asm(
+	asm volatile (
 		"lidt    %0"
 		/* Outputs  */ : /* None */
 		/* Inputs   */ : "m" (*idtr)
@@ -113,7 +113,7 @@ int dbg_load_idt(struct dbg_idtr *idtr)
  */
 int dbg_store_idt(struct dbg_idtr *idtr)
 {
-	asm(
+	asm volatile (
 		"sidt    %0"
 		/* Outputs  */ : "=m" (*idtr)
 		/* Inputs   */ : /* None */
@@ -221,7 +221,7 @@ void dbg_interrupt(struct dbg_interrupt_state *istate)
  */
 void dbg_io_write_8(uint16_t port, uint8_t val)
 {
-	asm(
+	asm volatile (
 		"outb    %%al, %%dx;"
 		/* Outputs  */ : /* None */
 		/* Inputs   */ : "a" (val), "d" (port)
@@ -236,7 +236,7 @@ uint8_t dbg_io_read_8(uint16_t port)
 {
 	uint8_t val;
 
-	asm(
+	asm volatile (
 		"inb     %%dx, %%al;"
 		/* Outputs  */ : "=a" (val)
 		/* Inputs   */ : "d" (port)
@@ -337,5 +337,5 @@ void dbg_start(void)
 	dbg_hook_idt(3, dbg_int_handlers[3]);
 
 	/* Interrupt to start debugging. */
-	asm("int3");
+	asm volatile ("int3");
 }
