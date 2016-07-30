@@ -53,7 +53,7 @@ void *dbg_sys_memset(void *ptr, int data, size_t len)
 /*
  * Get current code segment (CS register).
  */
-uint32_t dbg_get_cs()
+uint32_t dbg_get_cs(void)
 {
 	uint32_t cs;
 
@@ -75,7 +75,7 @@ uint32_t dbg_get_cs()
 /*
  * Initialize idt_gates with the interrupt handlers.
  */
-int dbg_init_gates()
+int dbg_init_gates(void)
 {
 	size_t   i;
 	uint16_t cs;
@@ -310,7 +310,7 @@ int dbg_sys_mem_writeb(address addr, char val)
 /*
  * Continue program execution.
  */
-int dbg_sys_continue()
+int dbg_sys_continue(void)
 {
 	dbg_state.registers[DBG_CPU_I386_REG_PS] &= ~(1<<8);
 	return 0;
@@ -319,7 +319,7 @@ int dbg_sys_continue()
 /*
  * Single step the next instruction.
  */
-int dbg_sys_step()
+int dbg_sys_step(void)
 {
 	dbg_state.registers[DBG_CPU_I386_REG_PS] |= 1<<8;
 	return 0;
