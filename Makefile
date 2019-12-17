@@ -20,19 +20,28 @@
 # SOFTWARE.
 #
 
-CC           := gcc
-CFLAGS       := -Werror -ansi -Os -m32 -g -ffunction-sections -fno-stack-protector
-LD           := ld
-LDFLAGS      := --script=gdbstub.ld -m elf_i386 --gc-sections
-NASM         := nasm
-NASM_FLAGS   := -felf
-OBJCOPY      := objcopy
-OBJCOPYFLAGS := --output-target=binary
-TARGET       := gdbstub.bin
-BASE_ADDRESS := 0x500000
-OBJECTS      := gdbstub_rsp.o \
-                gdbstub_int.o \
-                gdbstub_sys.o
+ARCH := x86
+
+CC           = gcc
+CFLAGS       = -Werror -ansi -Os -g -ffunction-sections -fno-stack-protector -I$(ARCH) -I$(PWD)
+LD           = ld
+LDFLAGS      = --script=gdbstub.ld --gc-sections
+NASM         = nasm
+NASM_FLAGS   = -felf
+OBJCOPY      = objcopy
+OBJCOPYFLAGS = --output-target=binary
+TARGET       = gdbstub.bin
+BASE_ADDRESS = 0x500000
+OBJECTS      = gdbstub_rsp.o \
+               $(ARCH)/gdbstub_sys.o
+
+ifeq ($(ARCH),x86)
+CFLAGS  += -m32
+LDFLAGS += -m elf_i386
+OBJECTS += $(ARCH)/gdbstub_int.o
+else
+$(error Please specify a supported architecture)
+endif
 
 all: $(TARGET)
 .PRECIOUS: %.elf
