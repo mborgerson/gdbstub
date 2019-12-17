@@ -20,6 +20,9 @@
  * SOFTWARE.
  */
 
+#ifndef _GDBSTUB_SYS_H_
+#define _GDBSTUB_SYS_H_
+
 /* Define the size_t type */
 #define DBG_DEFINE_SIZET 1
 
@@ -131,3 +134,5 @@ void dbg_start(void);
 void dbg_io_write_8(uint16_t port, uint8_t val);
 uint8_t dbg_io_read_8(uint16_t port);
 void *dbg_sys_memset(void *ptr, int data, size_t len);
+
+#endif
