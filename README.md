@@ -12,7 +12,7 @@ Remote Serial Protocol](https://sourceware.org/gdb/onlinedocs/gdb/Remote-Protoco
 Porting
 -------
 This was developed for x86 systems, but it's fairly modular. With a little
-effort, it should be easily ported to other platforms. You will need to modify
+effort, it can be easily ported to other platforms. You will need to modify
 `gdbstub_sys.h` and `gdbstub_sys.c` to fit your platform's needs accordingly.
 
 Building
@@ -22,6 +22,7 @@ break.
 
 License
 -------
-Licensed under GPL v2. See `LICENSE.txt` for full license.
+This software is published under the terms of the MIT License. See `LICENSE.txt`
+for full license.
 
 Matt Borgerson, 2016-2019
