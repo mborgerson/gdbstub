@@ -59,9 +59,8 @@
 	} \
 }
 #else
-#define ASSERT(x) { \
- 	while(1); \
-}
+#define ASSERT(x) \
+	do {} while (0)
 #endif
 #endif
 
