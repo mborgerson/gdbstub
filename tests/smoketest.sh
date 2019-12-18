@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 echo "Launching QEMU"
 qemu-system-i386 \
 	-serial tcp:127.0.0.1:1234,server \
@@ -7,7 +7,7 @@ qemu-system-i386 \
 sleep 1
 
 echo "Running GDB"
-gdb --command smoketest.gdbinit
+gdb --command tests/smoketest.gdbinit
 RESULT=$?
 
 echo "Terminating QEMU"
