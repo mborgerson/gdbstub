@@ -27,7 +27,7 @@ The intent for this flat binary is to be trivially loaded and jumped to.
 
 Demo
 ----
-In `demo.c` there is a simple function that's used for demonstration and
+In `demo/demo.c` there is a simple function that's used for demonstration and
 testing. To test the GDB stub out, you can launch an instance of the full-system
 emulator [QEMU](https://www.qemu.org/) as follows:
 
@@ -41,7 +41,7 @@ You can then launch your local GDB client with the `demo.gdbinit` script to get
 your GDB client to connect to the virtual serial port and begin debugging the
 demo application:
 
-	gdb --command=demo.gdbinit
+	gdb --command=demo/demo.gdbinit
 
 For example, step a couple of times and print out the value of `x`:
 

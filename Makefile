@@ -47,7 +47,7 @@ $(error Please specify a supported architecture)
 endif
 
 ifeq ($(INCLUDE_DEMO),1)
-OBJECTS += demo.o
+OBJECTS += demo/demo.o
 endif
 
 all: $(TARGET)
