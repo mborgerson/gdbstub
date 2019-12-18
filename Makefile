@@ -35,7 +35,7 @@ OBJCOPY      = objcopy
 OBJCOPYFLAGS = --output-target=binary
 TARGET       = gdbstub.bin
 BASE_ADDRESS = 0x500000
-OBJECTS      = gdbstub_rsp.o \
+OBJECTS      = gdbstub.o \
                $(ARCH)/gdbstub_sys.o
 
 ifeq ($(ARCH),arch_x86)
