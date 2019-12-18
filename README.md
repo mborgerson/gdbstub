@@ -17,8 +17,35 @@ effort, it can be easily ported to other platforms. You will need to modify
 
 Building
 --------
-Running `make` produces a simple binary that will hook the current IDT and
-break.
+Running `make` produces ELF binary `gdbstub.elf` with an entry point
+(`dbg_start`) that will simply hook the current IDT (to support debug
+interrupts) and break.
+
+Additionally, a simple flat binary `gdbstub.bin` is created from the ELF binary.
+The intent for this flat binary is to be trivially loaded and jumped to.
+
+Demo
+----
+To test the GDB stub out, you can launch an instance of the full-system emulator
+[QEMU](https://www.qemu.org/) as follows:
+
+	qemu-system-i386 -serial tcp:127.0.0.1:1234,server -display none -kernel gdbstub.elf
+
+This will launch QEMU, create a virtual serial port that can be connected to
+through local TCP port 1234, then load and run the stub executable.
+
+You can then launch GDB with the `demo.gdbinit` script to get your GDB client
+to connect to the virtual serial port and begin debugging the demo application:
+
+	gdb --command=demo.gdbinit
+
+For example, step a couple of times and print out the value of `x`:
+
+	(gdb) s 2
+	(gdb) p/x x
+	$1 = 0xdeadbeef
+	(gdb)
+
 
 License
 -------

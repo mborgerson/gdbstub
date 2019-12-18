@@ -22,6 +22,9 @@
 
 ARCH := x86
 
+# Include a simple demo that can be debugged
+INCLUDE_DEMO = 1
+
 CC           = gcc
 CFLAGS       = -Werror -ansi -Os -g -ffunction-sections -fno-stack-protector -I$(ARCH) -I$(PWD)
 LD           = ld
@@ -43,6 +46,10 @@ else
 $(error Please specify a supported architecture)
 endif
 
+ifeq ($(INCLUDE_DEMO),1)
+OBJECTS += demo.o
+endif
+
 all: $(TARGET)
 .PRECIOUS: %.elf
 
@@ -52,8 +59,11 @@ all: $(TARGET)
 %.elf: $(OBJECTS) gdbstub.ld
 	$(LD) $(LDFLAGS) -o $@ $(OBJECTS)
 
-gdbstub.ld: gdbstub.ld.in
-	$(shell sed -e "s/\$$BASE_ADDRESS/$(BASE_ADDRESS)/" gdbstub.ld.in > gdbstub.ld)
+gdbstub.ld: gdbstub.ld.in Makefile
+	$(CC) -o $@ -x c -P -E \
+		-DBASE_ADDRESS=$(BASE_ADDRESS) \
+		-DINCLUDE_DEMO=$(INCLUDE_DEMO) \
+		$<
 
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<

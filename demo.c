@@ -20,60 +20,25 @@
  * SOFTWARE.
  */
 
-#if INCLUDE_DEMO
-#define ENTRYPOINT _start
-#else
-#define ENTRYPOINT dbg_start
-#endif
+#include "gdbstub.h"
 
-#define MULTIBOOT_MAGIC 0x1badb002
-#define MULTIBOOT_FLAGS 0x10000
-#define MULTIBOOT_CSUM  (0 - (MULTIBOOT_MAGIC + MULTIBOOT_FLAGS))
-
-ENTRY(ENTRYPOINT)
-
-MEMORY
+static void simple_loop(void)
 {
-	RAM (WX) : ORIGIN = BASE_ADDRESS, LENGTH = 0x10000
+	volatile int x;
+	int i;
+
+	x = 0xdeadbeef;
+	for (i = 0; 1; i++) {
+		x ^= (1 << (i % 32));
+	}
 }
 
-SECTIONS
+/* This will be called at startup. */
+void _start(void)
 {
-	.text : {
-		*(.text.dbg_start)
+	/* Enable debugging hooks and break */
+	dbg_start();
 
-#if INCLUDE_DEMO
-		. = ALIGN(16);
-		/* Include a multiboot header to boot in QEMU */
-		multiboot_hdr = .;
-		LONG(MULTIBOOT_MAGIC)
-		LONG(MULTIBOOT_FLAGS)
-		LONG(MULTIBOOT_CSUM)
-		LONG(multiboot_hdr)
-		LONG(BASE_ADDRESS)
-		LONG(_load_end_addr)
-		LONG(_bss_end_addr)
-		LONG(ENTRYPOINT)
-#endif
-
-		*(.text)
-		*(.rodata)
-	} > RAM
-
-	.data : {
-		*(.data)
-		*(.bss)
-		_load_end_addr = .;
-		_bss_end_addr = .;
-	} > RAM
-
-	/DISCARD/ : {
-		*(.comment)
-		*(.note.GNU-stack)
-		*(.eh_frame)
-		*(.rela.eh_frame)
-		*(.shstrtab)
-		*(.symtab)
-		*(.strtab)
-	}
+	/* Example code to debug through... */
+	simple_loop();
 }
