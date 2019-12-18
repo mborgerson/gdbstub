@@ -748,7 +748,7 @@ int dbg_main(struct dbg_state *state)
 	size_t      pkt_len;
 	const char *ptr_next;
 
-	dbg_send_signal_packet(pkt_buf, sizeof(pkt_buf), 0);
+	dbg_send_signal_packet(pkt_buf, sizeof(pkt_buf), state->signum);
 
 	while (1) {
 		/* Receive the next packet */
@@ -942,7 +942,7 @@ int dbg_main(struct dbg_state *state)
 			return 0;
 
 		case '?':
-			dbg_send_signal_packet(pkt_buf, sizeof(pkt_buf), 0);
+			dbg_send_signal_packet(pkt_buf, sizeof(pkt_buf), state->signum);
 			break;
 
 		/*

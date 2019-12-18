@@ -175,7 +175,12 @@ void dbg_interrupt(struct dbg_interrupt_state *istate)
 {
 	dbg_sys_memset(&dbg_state.registers, 0, sizeof(dbg_state.registers));
 
-	dbg_state.signum = istate->vector;
+	/* Translate vector to signal */
+	switch (istate->vector) {
+	case 1:  dbg_state.signum = 5; break;
+	case 3:  dbg_state.signum = 5; break;
+	default: dbg_state.signum = 7;
+	}
 
 	/* Load Registers */
 	dbg_state.registers[DBG_CPU_I386_REG_EAX] = istate->eax;
