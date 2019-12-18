@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-ARCH := x86
+ARCH := arch_x86
 
 # Include a simple demo that can be debugged
 INCLUDE_DEMO = 1
@@ -38,7 +38,7 @@ BASE_ADDRESS = 0x500000
 OBJECTS      = gdbstub_rsp.o \
                $(ARCH)/gdbstub_sys.o
 
-ifeq ($(ARCH),x86)
+ifeq ($(ARCH),arch_x86)
 CFLAGS  += -m32
 LDFLAGS += -m elf_i386
 OBJECTS += $(ARCH)/gdbstub_int.o
