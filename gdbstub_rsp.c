@@ -853,15 +853,13 @@ int dbg_main(struct dbg_state *state)
 			token_expect_integer_arg(addr);
 			token_expect_seperator('=');
 
-			if (addr >= DBG_CPU_I386_NUM_REGISTERS) {
-				goto error;
-			}
-
-			status = dbg_dec_hex(ptr_next, token_remaining_buf,
-			                     (char *)&(state->registers[addr]),
-			                     sizeof(state->registers[addr]));
-			if (status == EOF) {
-				goto error;
+			if (addr < DBG_CPU_I386_NUM_REGISTERS) {
+				status = dbg_dec_hex(ptr_next, token_remaining_buf,
+				                     (char *)&(state->registers[addr]),
+				                     sizeof(state->registers[addr]));
+				if (status == EOF) {
+					goto error;
+				}
 			}
 			dbg_send_ok_packet(pkt_buf, sizeof(pkt_buf));
 			break;
