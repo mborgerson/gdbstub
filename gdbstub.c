@@ -830,7 +830,7 @@ int dbg_main(struct dbg_state *state)
 			ptr_next += 1;
 			token_expect_integer_arg(addr);
 
-			if (addr >= DBG_CPU_I386_NUM_REGISTERS) {
+			if (addr >= DBG_CPU_NUM_REGISTERS) {
 				goto error;
 			}
 
@@ -853,7 +853,7 @@ int dbg_main(struct dbg_state *state)
 			token_expect_integer_arg(addr);
 			token_expect_seperator('=');
 
-			if (addr < DBG_CPU_I386_NUM_REGISTERS) {
+			if (addr < DBG_CPU_NUM_REGISTERS) {
 				status = dbg_dec_hex(ptr_next, token_remaining_buf,
 				                     (char *)&(state->registers[addr]),
 				                     sizeof(state->registers[addr]));

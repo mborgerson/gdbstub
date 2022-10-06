@@ -88,28 +88,28 @@ struct dbg_idt_gate
 #pragma pack()
 
 enum DBG_REGISTER {
-	DBG_CPU_I386_REG_EAX       = 0,
-	DBG_CPU_I386_REG_ECX       = 1,
-	DBG_CPU_I386_REG_EDX       = 2,
-	DBG_CPU_I386_REG_EBX       = 3,
-	DBG_CPU_I386_REG_ESP       = 4,
-	DBG_CPU_I386_REG_EBP       = 5,
-	DBG_CPU_I386_REG_ESI       = 6,
-	DBG_CPU_I386_REG_EDI       = 7,
-	DBG_CPU_I386_REG_PC        = 8,
-	DBG_CPU_I386_REG_PS        = 9,
-	DBG_CPU_I386_REG_CS        = 10,
-	DBG_CPU_I386_REG_SS        = 11,
-	DBG_CPU_I386_REG_DS        = 12,
-	DBG_CPU_I386_REG_ES        = 13,
-	DBG_CPU_I386_REG_FS        = 14,
-	DBG_CPU_I386_REG_GS        = 15,
-	DBG_CPU_I386_NUM_REGISTERS = 16
+	DBG_CPU_I386_REG_EAX  = 0,
+	DBG_CPU_I386_REG_ECX  = 1,
+	DBG_CPU_I386_REG_EDX  = 2,
+	DBG_CPU_I386_REG_EBX  = 3,
+	DBG_CPU_I386_REG_ESP  = 4,
+	DBG_CPU_I386_REG_EBP  = 5,
+	DBG_CPU_I386_REG_ESI  = 6,
+	DBG_CPU_I386_REG_EDI  = 7,
+	DBG_CPU_I386_REG_PC   = 8,
+	DBG_CPU_I386_REG_PS   = 9,
+	DBG_CPU_I386_REG_CS   = 10,
+	DBG_CPU_I386_REG_SS   = 11,
+	DBG_CPU_I386_REG_DS   = 12,
+	DBG_CPU_I386_REG_ES   = 13,
+	DBG_CPU_I386_REG_FS   = 14,
+	DBG_CPU_I386_REG_GS   = 15,
+	DBG_CPU_NUM_REGISTERS = 16
 };
 
 struct dbg_state {
 	int signum;
-	reg registers[DBG_CPU_I386_NUM_REGISTERS];
+	reg registers[DBG_CPU_NUM_REGISTERS];
 };
 
 /*****************************************************************************
