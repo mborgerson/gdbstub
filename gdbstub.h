@@ -73,11 +73,11 @@
 int dbg_main(struct dbg_state *state);
 
 /* System functions, supported by all stubs */
-int dbg_sys_getc(void);
-int dbg_sys_putchar(int ch);
-int dbg_sys_mem_readb(address addr, char *val);
-int dbg_sys_mem_writeb(address addr, char val);
-int dbg_sys_continue();
-int dbg_sys_step();
+int dbg_sys_getc(struct dbg_state *state);
+int dbg_sys_putchar(struct dbg_state *state, int ch);
+int dbg_sys_mem_readb(struct dbg_state *state, address addr, char *val);
+int dbg_sys_mem_writeb(struct dbg_state *state, address addr, char val);
+int dbg_sys_continue(struct dbg_state *state);
+int dbg_sys_step(struct dbg_state *state);
 
 #endif
