@@ -957,7 +957,8 @@ int dbg_main(struct dbg_state *state)
 			return 0;
 
 		case '?':
-			dbg_send_signal_packet(state, pkt_buf, sizeof(pkt_buf), state->signum);
+			dbg_send_signal_packet(state, pkt_buf, sizeof(pkt_buf),
+			                       state->signum);
 			break;
 
 		/*
