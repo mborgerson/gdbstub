@@ -2,3 +2,4 @@
 *.elf
 *.ld
 *.o
+gdbstub-mock

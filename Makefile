@@ -78,3 +78,6 @@ clean:
 		$(TARGET:.bin=.elf) \
 		$(OBJECTS) \
 		gdbstub.ld
+
+gdbstub-mock: gdbstub.c arch_mock/gdbstub_sys.c
+	$(CC) -o $@ -I. -Iarch_mock -DDEFINE_MAIN -DUSE_STDIO -DDEBUG $^
