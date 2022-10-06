@@ -122,11 +122,11 @@ extern void const * const dbg_int_handlers[];
  * Prototypes
  ****************************************************************************/
 
-int dbg_hook_idt(uint8_t vector, const void *function);
-int dbg_init_gates(void);
-int dbg_init_idt(void);
-int dbg_load_idt(struct dbg_idtr *idtr);
-int dbg_store_idt(struct dbg_idtr *idtr);
+void dbg_hook_idt(uint8_t vector, const void *function);
+void dbg_init_gates(void);
+void dbg_init_idt(void);
+void dbg_load_idt(struct dbg_idtr *idtr);
+void dbg_store_idt(struct dbg_idtr *idtr);
 uint32_t dbg_get_cs(void);
 void dbg_int_handler(struct dbg_interrupt_state *istate);
 void dbg_interrupt(struct dbg_interrupt_state *istate);

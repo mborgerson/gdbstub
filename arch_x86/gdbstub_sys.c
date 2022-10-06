@@ -79,7 +79,7 @@ uint32_t dbg_get_cs(void)
 /*
  * Initialize idt_gates with the interrupt handlers.
  */
-int dbg_init_gates(void)
+void dbg_init_gates(void)
 {
 	size_t   i;
 	uint16_t cs;
@@ -93,14 +93,12 @@ int dbg_init_gates(void)
 		dbg_idt_gates[i].offset_high =
 			((uint32_t)dbg_int_handlers[i] >> 16) & 0xffff;
 	}
-
-	return 0;
 }
 
 /*
  * Load a new IDT.
  */
-int dbg_load_idt(struct dbg_idtr *idtr)
+void dbg_load_idt(struct dbg_idtr *idtr)
 {
 	asm volatile (
 		"lidt    %0"
@@ -108,14 +106,12 @@ int dbg_load_idt(struct dbg_idtr *idtr)
 		/* Inputs   */ : "m" (*idtr)
 		/* Clobbers */ : /* None */
 		);
-
-	return 0;
 }
 
 /*
  * Get current IDT.
  */
-int dbg_store_idt(struct dbg_idtr *idtr)
+void dbg_store_idt(struct dbg_idtr *idtr)
 {
 	asm volatile (
 		"sidt    %0"
@@ -123,14 +119,12 @@ int dbg_store_idt(struct dbg_idtr *idtr)
 		/* Inputs   */ : /* None */
 		/* Clobbers */ : /* None */
 		);
-
-	return 0;
 }
 
 /*
  * Hook a vector of the current IDT.
  */
-int dbg_hook_idt(uint8_t vector, const void *function)
+void dbg_hook_idt(uint8_t vector, const void *function)
 {
 	struct dbg_idtr      idtr;
 	struct dbg_idt_gate *gates;
@@ -141,14 +135,12 @@ int dbg_hook_idt(uint8_t vector, const void *function)
 	gates[vector].segment     = dbg_get_cs();
 	gates[vector].offset_low  = (((uint32_t)function)      ) & 0xffff;
 	gates[vector].offset_high = (((uint32_t)function) >> 16) & 0xffff;
-
-	return 0;
 }
 
 /*
  * Initialize IDT gates and load the new IDT.
  */
-int dbg_init_idt(void)
+void dbg_init_idt(void)
 {
 	struct dbg_idtr idtr;
 
@@ -156,8 +148,6 @@ int dbg_init_idt(void)
 	idtr.len = sizeof(dbg_idt_gates)-1;
 	idtr.offset = (uint32_t)dbg_idt_gates;
 	dbg_load_idt(&idtr);
-
-	return 0;
 }
 
 /*
