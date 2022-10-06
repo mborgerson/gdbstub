@@ -20,6 +20,10 @@
  * SOFTWARE.
  */
 
+#ifndef INCLUDE_DEMO
+#define INCLUDE_DEMO 0
+#endif
+
 #if INCLUDE_DEMO
 #define ENTRYPOINT _start
 #else

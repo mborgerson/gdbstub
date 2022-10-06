@@ -12,26 +12,34 @@ Remote Serial Protocol](https://sourceware.org/gdb/onlinedocs/gdb/Remote-Protoco
 
 Porting
 -------
-This was developed for x86 systems, but it's fairly modular. With a little
-effort, it can be easily ported to other platforms. You will need to modify
-`gdbstub_sys.h` and `gdbstub_sys.c` to fit your platform's needs accordingly.
+This was originally developed for embedded x86 systems, but it's fairly modular.
+With a little effort, it can be easily ported to other platforms. I recommend
+starting with the mock architecture, and modifying `gdbstub_sys.h` and
+`gdbstub_sys.c` to fit your platform's needs accordingly. If you port it to
+another platform, I welcome a PR for it!
 
 Building
 --------
-Running `make` produces ELF binary `gdbstub.elf` with an entry point
-(`dbg_start`) that will simply hook the current IDT (to support debug
-interrupts) and break.
+By default, running `make` produces a `gdbstub-mock` program. This is simply a
+stub for a mock architecture (just a handful of registers and some memory)
+running inside a normal program that communicates over stdio.
 
-Additionally, a simple flat binary `gdbstub.bin` is created from the ELF binary.
-The intent for this flat binary is to be trivially loaded and jumped to.
+A stub intended for bare metal x86 machines can be built with `make ARCH=x86`.
+This produces an ELF binary `gdbstub-x86.elf` with an entry point `dbg_start`
+that will hook the current IDT (to support debug interrupts) and break.
 
-Demo
-----
+Additionally, a simple flat binary `gdbstub-x86.bin` is created from the ELF
+binary. The intent for this flat binary is to be trivially loaded and jumped
+to.
+
+x86 Demo
+--------
 In `demo/demo.c` there is a simple function that's used for demonstration and
-testing. To test the GDB stub out, you can launch an instance of the full-system
-emulator [QEMU](https://www.qemu.org/) as follows:
+testing. To use it, first build the stub with `make ARCH=x86 INCLUDE_DEMO=1`.
+Then, to test the GDB stub out, launch an instance of the full-system emulator
+[QEMU](https://www.qemu.org/) as follows:
 
-	qemu-system-i386 -serial tcp:127.0.0.1:1234,server -display none -kernel gdbstub.elf
+	qemu-system-i386 -serial tcp:127.0.0.1:1234,server -display none -kernel gdbstub-x86.elf
 
 This will launch QEMU, create a virtual machine with a virtual serial port that
 can be connected to through local TCP port 1234, then load and run the stub
