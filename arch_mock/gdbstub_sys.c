@@ -83,7 +83,8 @@ int dbg_sys_putchar(struct dbg_state *state, int ch)
 int dbg_sys_getc(struct dbg_state *state)
 {
 #ifdef USE_STDIO
-	return getchar();
+	int ch = getchar();
+	return ch == EOF ? DBG_EOF : ch;
 #else
 	return dbg_buf_read(&dbg_input);
 #endif

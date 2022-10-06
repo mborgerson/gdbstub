@@ -153,7 +153,7 @@ int dbg_strtol(const char *str, size_t len, int base, const char **endptr)
 
 	for (; (pos < len) && (str[pos] != '\x00'); pos++) {
 		tmp = dbg_get_val(str[pos], base);
-		if (tmp == EOF) {
+		if (tmp == DBG_EOF) {
 			break;
 		}
 
@@ -182,7 +182,7 @@ char dbg_get_digit(int val)
 	if ((val >= 0) && (val <= 0xf)) {
 		return digits[val];
 	} else {
-		return EOF;
+		return DBG_EOF;
 	}
 }
 
@@ -202,10 +202,10 @@ int dbg_get_val(char digit, int base)
 	} else if ((digit >= 'A') && (digit <= 'F')) {
 		value = digit-'A'+0xa;
 	} else {
-		return EOF;
+		return DBG_EOF;
 	}
 
-	return (value < base) ? value : EOF;
+	return (value < base) ? value : DBG_EOF;
 }
 
 /*
@@ -226,7 +226,7 @@ int dbg_is_printable_char(char ch)
  * Returns:
  *    0   if an ACK (+) was received
  *    1   if a NACK (-) was received
- *    EOF otherwise
+ *    DBG_EOF otherwise
  */
 int dbg_recv_ack(struct dbg_state *state)
 {
@@ -242,8 +242,8 @@ int dbg_recv_ack(struct dbg_state *state)
 		return 1;
 	default:
 		/* Bad response! */
-		DEBUG_PRINT("received bad packet response: 0x%2x\n", response);
-		return EOF;
+		DBG_PRINT("received bad packet response: 0x%2x\n", response);
+		return DBG_EOF;
 	}
 }
 
@@ -273,7 +273,7 @@ int dbg_checksum(const char *buf, size_t len)
  * Returns:
  *    0   if the packet was transmitted and acknowledged
  *    1   if the packet was transmitted but not acknowledged
- *    EOF otherwise
+ *    DBG_EOF otherwise
  */
 int dbg_send_packet(struct dbg_state *state, const char *pkt_data,
                     size_t pkt_len)
@@ -282,36 +282,36 @@ int dbg_send_packet(struct dbg_state *state, const char *pkt_data,
 	char csum;
 
 	/* Send packet start */
-	if (dbg_sys_putchar(state, '$') == EOF) {
-		return EOF;
+	if (dbg_sys_putchar(state, '$') == DBG_EOF) {
+		return DBG_EOF;
 	}
 
 #if DEBUG
 	{
 		size_t p;
-		DEBUG_PRINT("-> ");
+		DBG_PRINT("-> ");
 		for (p = 0; p < pkt_len; p++) {
 			if (dbg_is_printable_char(pkt_data[p])) {
-				DEBUG_PRINT("%c", pkt_data[p]);
+				DBG_PRINT("%c", pkt_data[p]);
 			} else {
-				DEBUG_PRINT("\\x%02x", pkt_data[p]&0xff);
+				DBG_PRINT("\\x%02x", pkt_data[p]&0xff);
 			}
 		}
-		DEBUG_PRINT("\n");
+		DBG_PRINT("\n");
 	}
 #endif
 
 	/* Send packet data */
-	if (dbg_write(state, pkt_data, pkt_len) == EOF) {
-		return EOF;
+	if (dbg_write(state, pkt_data, pkt_len) == DBG_EOF) {
+		return DBG_EOF;
 	}
 
 	/* Send the checksum */
 	buf[0] = '#';
 	csum = dbg_checksum(pkt_data, pkt_len);
-	if ((dbg_enc_hex(buf+1, sizeof(buf)-1, &csum, 1) == EOF) ||
-		(dbg_write(state, buf, sizeof(buf)) == EOF)) {
-		return EOF;
+	if ((dbg_enc_hex(buf+1, sizeof(buf)-1, &csum, 1) == DBG_EOF) ||
+		(dbg_write(state, buf, sizeof(buf)) == DBG_EOF)) {
+		return DBG_EOF;
 	}
 
 	return dbg_recv_ack(state);
@@ -322,7 +322,7 @@ int dbg_send_packet(struct dbg_state *state, const char *pkt_data,
  *
  * Returns:
  *    0   if the packet was received
- *    EOF otherwise
+ *    DBG_EOF otherwise
  */
 int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
                     size_t *pkt_len)
@@ -336,8 +336,8 @@ int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
 
 	while (1) {
 		data = dbg_sys_getc(state);
-		if (data == EOF) {
-			return EOF;
+		if (data == DBG_EOF) {
+			return DBG_EOF;
 		} else if (data == '$') {
 			/* Detected start of packet. */
 			break;
@@ -349,17 +349,17 @@ int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
 	while (1) {
 		data = dbg_sys_getc(state);
 
-		if (data == EOF) {
+		if (data == DBG_EOF) {
 			/* Error receiving character */
-			return EOF;
+			return DBG_EOF;
 		} else if (data == '#') {
 			/* End of packet */
 			break;
 		} else {
 			/* Check for space */
 			if (*pkt_len >= pkt_buf_len) {
-				DEBUG_PRINT("packet buffer overflow\n");
-				return EOF;
+				DBG_PRINT("packet buffer overflow\n");
+				return DBG_EOF;
 			}
 
 			/* Store character and update checksum */
@@ -370,31 +370,31 @@ int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
 #if DEBUG
 	{
 		size_t p;
-		DEBUG_PRINT("<- ");
+		DBG_PRINT("<- ");
 		for (p = 0; p < *pkt_len; p++) {
 			if (dbg_is_printable_char(pkt_buf[p])) {
-				DEBUG_PRINT("%c", pkt_buf[p]);
+				DBG_PRINT("%c", pkt_buf[p]);
 			} else {
-				DEBUG_PRINT("\\x%02x", pkt_buf[p] & 0xff);
+				DBG_PRINT("\\x%02x", pkt_buf[p] & 0xff);
 			}
 		}
-		DEBUG_PRINT("\n");
+		DBG_PRINT("\n");
 	}
 #endif
 
 	/* Receive the checksum */
-	if ((dbg_read(state, buf, sizeof(buf), 2) == EOF) ||
-		(dbg_dec_hex(buf, 2, &expected_csum, 1) == EOF)) {
-		return EOF;
+	if ((dbg_read(state, buf, sizeof(buf), 2) == DBG_EOF) ||
+		(dbg_dec_hex(buf, 2, &expected_csum, 1) == DBG_EOF)) {
+		return DBG_EOF;
 	}
 
 	/* Verify checksum */
 	actual_csum = dbg_checksum(pkt_buf, *pkt_len);
 	if (actual_csum != expected_csum) {
 		/* Send packet nack */
-		DEBUG_PRINT("received packet with bad checksum\n");
+		DBG_PRINT("received packet with bad checksum\n");
 		dbg_sys_putchar(state, '-');
-		return EOF;
+		return DBG_EOF;
 	}
 
 	/* Send packet ack */
@@ -411,7 +411,7 @@ int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
  *
  * Returns:
  *    0+  number of bytes written to buf
- *    EOF if the buffer is too small
+ *    DBG_EOF if the buffer is too small
  */
 int dbg_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len)
 {
@@ -419,7 +419,7 @@ int dbg_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len)
 
 	if (buf_len < data_len*2) {
 		/* Buffer too small */
-		return EOF;
+		return DBG_EOF;
 	}
 
 	for (pos = 0; pos < data_len; pos++) {
@@ -435,7 +435,7 @@ int dbg_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len)
  *
  * Returns:
  *    0   if successful
- *    EOF if the buffer is too small
+ *    DBG_EOF if the buffer is too small
  */
 int dbg_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len)
 {
@@ -444,26 +444,26 @@ int dbg_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len)
 
 	if (buf_len != data_len*2) {
 		/* Buffer too small */
-		return EOF;
+		return DBG_EOF;
 	}
 
 	for (pos = 0; pos < data_len; pos++) {
 		/* Decode high nibble */
 		tmp = dbg_get_val(*buf++, 16);
-		if (tmp == EOF) {
+		if (tmp == DBG_EOF) {
 			/* Buffer contained junk. */
-			ASSERT(0);
-			return EOF;
+			DBG_ASSERT(0);
+			return DBG_EOF;
 		}
 
 		data[pos] = tmp << 4;
 
 		/* Decode low nibble */
 		tmp = dbg_get_val(*buf++, 16);
-		if (tmp == EOF) {
+		if (tmp == DBG_EOF) {
 			/* Buffer contained junk. */
-			ASSERT(0);
-			return EOF;
+			DBG_ASSERT(0);
+			return DBG_EOF;
 		}
 		data[pos] |= tmp;
 	}
@@ -476,7 +476,7 @@ int dbg_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len)
  *
  * Returns:
  *    0+  number of bytes written to buf
- *    EOF if the buffer is too small
+ *    DBG_EOF if the buffer is too small
  */
 int dbg_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len)
 {
@@ -488,15 +488,15 @@ int dbg_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len)
 			data[data_pos] == '}' ||
 			data[data_pos] == '*') {
 			if (buf_pos+1 >= buf_len) {
-				ASSERT(0);
-				return EOF;
+				DBG_ASSERT(0);
+				return DBG_EOF;
 			}
 			buf[buf_pos++] = '}';
 			buf[buf_pos++] = data[data_pos] ^ 0x20;
 		} else {
 			if (buf_pos >= buf_len) {
-				ASSERT(0);
-				return EOF;
+				DBG_ASSERT(0);
+				return DBG_EOF;
 			}
 			buf[buf_pos++] = data[data_pos];
 		}
@@ -510,7 +510,7 @@ int dbg_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len)
  *
  * Returns:
  *    0+  if successful, number of bytes decoded
- *    EOF if the buffer is too small
+ *    DBG_EOF if the buffer is too small
  */
 int dbg_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len)
 {
@@ -519,16 +519,16 @@ int dbg_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len)
 	for (buf_pos = 0, data_pos = 0; buf_pos < buf_len; buf_pos++) {
 		if (data_pos >= data_len) {
 			/* Output buffer overflow */
-			ASSERT(0);
-			return EOF;
+			DBG_ASSERT(0);
+			return DBG_EOF;
 		}
 		if (buf[buf_pos] == '}') {
 			/* The next byte is escaped! */
 			if (buf_pos+1 >= buf_len) {
 				/* There's an escape character, but no escaped character
 				 * following the escape character. */
-				ASSERT(0);
-				return EOF;
+				DBG_ASSERT(0);
+				return DBG_EOF;
 			}
 			buf_pos += 1;
 			data[data_pos++] = buf[buf_pos] ^ 0x20;
@@ -549,7 +549,7 @@ int dbg_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len)
  *
  * Returns:
  *    0+  number of bytes written to buf
- *    EOF if the buffer is too small
+ *    DBG_EOF if the buffer is too small
  */
 int dbg_mem_read(struct dbg_state *state, char *buf, size_t buf_len,
                  address addr, size_t len, dbg_enc_func enc)
@@ -558,14 +558,14 @@ int dbg_mem_read(struct dbg_state *state, char *buf, size_t buf_len,
 	size_t pos;
 
 	if (len > sizeof(data)) {
-		return EOF;
+		return DBG_EOF;
 	}
 
 	/* Read from system memory */
 	for (pos = 0; pos < len; pos++) {
 		if (dbg_sys_mem_readb(state, addr+pos, &data[pos])) {
 			/* Failed to read */
-			return EOF;
+			return DBG_EOF;
 		}
 	}
 
@@ -583,19 +583,19 @@ int dbg_mem_write(struct dbg_state *state, const char *buf, size_t buf_len,
 	size_t pos;
 
 	if (len > sizeof(data)) {
-		return EOF;
+		return DBG_EOF;
 	}
 
 	/* Decode data */
-	if (dec(buf, buf_len, data, len) == EOF) {
-		return EOF;
+	if (dec(buf, buf_len, data, len) == DBG_EOF) {
+		return DBG_EOF;
 	}
 
 	/* Write to system memory */
 	for (pos = 0; pos < len; pos++) {
 		if (dbg_sys_mem_writeb(state, addr+pos, data[pos])) {
 			/* Failed to write */
-			return EOF;
+			return DBG_EOF;
 		}
 	}
 
@@ -643,13 +643,13 @@ int dbg_send_conmsg_packet(struct dbg_state *state, char *buf, size_t buf_len,
 
 	if (buf_len < 2) {
 		/* Buffer too small */
-		return EOF;
+		return DBG_EOF;
 	}
 
 	buf[0] = 'O';
 	status = dbg_enc_hex(&buf[1], buf_len-1, msg, dbg_strlen(msg));
-	if (status == EOF) {
-		return EOF;
+	if (status == DBG_EOF) {
+		return DBG_EOF;
 	}
 	size = 1 + status;
 	return dbg_send_packet(state, buf, size);
@@ -666,13 +666,13 @@ int dbg_send_signal_packet(struct dbg_state *state, char *buf, size_t buf_len,
 
 	if (buf_len < 4) {
 		/* Buffer too small */
-		return EOF;
+		return DBG_EOF;
 	}
 
 	buf[0] = 'S';
 	status = dbg_enc_hex(&buf[1], buf_len-1, &signal, 1);
-	if (status == EOF) {
-		return EOF;
+	if (status == DBG_EOF) {
+		return DBG_EOF;
 	}
 	size = 1 + status;
 	return dbg_send_packet(state, buf, size);
@@ -689,13 +689,13 @@ int dbg_send_error_packet(struct dbg_state *state, char *buf, size_t buf_len,
 
 	if (buf_len < 4) {
 		/* Buffer too small */
-		return EOF;
+		return DBG_EOF;
 	}
 
 	buf[0] = 'E';
 	status = dbg_enc_hex(&buf[1], buf_len-1, &error, 1);
-	if (status == EOF) {
-		return EOF;
+	if (status == DBG_EOF) {
+		return DBG_EOF;
 	}
 	size = 1 + status;
 	return dbg_send_packet(state, buf, size);
@@ -710,13 +710,13 @@ int dbg_send_error_packet(struct dbg_state *state, char *buf, size_t buf_len,
  *
  * Returns:
  *    0   if successful
- *    EOF if failed to write all bytes
+ *    DBG_EOF if failed to write all bytes
  */
 int dbg_write(struct dbg_state *state, const char *buf, size_t len)
 {
 	while (len--) {
-		if (dbg_sys_putchar(state, *buf++) == EOF) {
-			return EOF;
+		if (dbg_sys_putchar(state, *buf++) == DBG_EOF) {
+			return DBG_EOF;
 		}
 	}
 
@@ -728,7 +728,7 @@ int dbg_write(struct dbg_state *state, const char *buf, size_t len)
  *
  * Returns:
  *    0   if successfully read len bytes
- *    EOF if failed to read all bytes
+ *    DBG_EOF if failed to read all bytes
  */
 int dbg_read(struct dbg_state *state, char *buf, size_t buf_len, size_t len)
 {
@@ -736,12 +736,12 @@ int dbg_read(struct dbg_state *state, char *buf, size_t buf_len, size_t len)
 
 	if (buf_len < len) {
 		/* Buffer too small */
-		return EOF;
+		return DBG_EOF;
 	}
 
 	while (len--) {
-		if ((c = dbg_sys_getc(state)) == EOF) {
-			return EOF;
+		if ((c = dbg_sys_getc(state)) == DBG_EOF) {
+			return DBG_EOF;
 		}
 		*buf++ = c;
 	}
@@ -770,7 +770,7 @@ int dbg_main(struct dbg_state *state)
 	while (1) {
 		/* Receive the next packet */
 		status = dbg_recv_packet(state, pkt_buf, sizeof(pkt_buf), &pkt_len);
-		if (status == EOF) {
+		if (status == DBG_EOF) {
 			break;
 		}
 
@@ -818,7 +818,7 @@ int dbg_main(struct dbg_state *state)
 			status = dbg_enc_hex(pkt_buf, sizeof(pkt_buf),
 			                     (char *)&(state->registers),
 			                     sizeof(state->registers));
-			if (status == EOF) {
+			if (status == DBG_EOF) {
 				goto error;
 			}
 			pkt_len = status;
@@ -833,7 +833,7 @@ int dbg_main(struct dbg_state *state)
 			status = dbg_dec_hex(pkt_buf+1, pkt_len-1,
 			                     (char *)&(state->registers),
 			                     sizeof(state->registers));
-			if (status == EOF) {
+			if (status == DBG_EOF) {
 				goto error;
 			}
 			dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
@@ -855,7 +855,7 @@ int dbg_main(struct dbg_state *state)
 			status = dbg_enc_hex(pkt_buf, sizeof(pkt_buf),
 			                     (char *)&(state->registers[addr]),
 			                     sizeof(state->registers[addr]));
-			if (status == EOF) {
+			if (status == DBG_EOF) {
 				goto error;
 			}
 			dbg_send_packet(state, pkt_buf, status);
@@ -874,7 +874,7 @@ int dbg_main(struct dbg_state *state)
 				status = dbg_dec_hex(ptr_next, token_remaining_buf,
 				                     (char *)&(state->registers[addr]),
 				                     sizeof(state->registers[addr]));
-				if (status == EOF) {
+				if (status == DBG_EOF) {
 					goto error;
 				}
 			}
@@ -894,7 +894,7 @@ int dbg_main(struct dbg_state *state)
 			/* Read Memory */
 			status = dbg_mem_read(state, pkt_buf, sizeof(pkt_buf),
 			                      addr, length, dbg_enc_hex);
-			if (status == EOF) {
+			if (status == DBG_EOF) {
 				goto error;
 			}
 			dbg_send_packet(state, pkt_buf, status);
@@ -914,7 +914,7 @@ int dbg_main(struct dbg_state *state)
 			/* Write Memory */
 			status = dbg_mem_write(state, ptr_next, token_remaining_buf,
 			                       addr, length, dbg_dec_hex);
-			if (status == EOF) {
+			if (status == DBG_EOF) {
 				goto error;
 			}
 			dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
@@ -934,7 +934,7 @@ int dbg_main(struct dbg_state *state)
 			/* Write Memory */
 			status = dbg_mem_write(state, ptr_next, token_remaining_buf,
 			                       addr, length, dbg_dec_bin);
-			if (status == EOF) {
+			if (status == DBG_EOF) {
 				goto error;
 			}
 			dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));

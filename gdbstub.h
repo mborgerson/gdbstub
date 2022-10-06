@@ -42,22 +42,22 @@
  ****************************************************************************/
 
 #if DEBUG
-#define DEBUG_PRINT(...) fprintf(stderr, __VA_ARGS__)
+#define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__)
 #else
-#define DEBUG_PRINT(...)
+#define DBG_PRINT(...)
 #endif
 
-#ifndef EOF
-#define EOF (-1)
+#ifndef DBG_EOF
+#define DBG_EOF (-1)
 #endif
 
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
 
-#ifndef ASSERT
+#ifndef DBG_ASSERT
 #if DEBUG
-#define ASSERT(x) { \
+#define DBG_ASSERT(x) { \
 	if (!(x)) { \
 		fprintf(stderr, "ASSERTION FAILED\n"); \
 		fprintf(stderr, "  Assertion: %s\n", #x); \
@@ -67,7 +67,7 @@
 	} \
 }
 #else
-#define ASSERT(x) \
+#define DBG_ASSERT(x) \
 	do {} while (0)
 #endif
 #endif
