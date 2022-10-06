@@ -20,44 +20,47 @@
 # SOFTWARE.
 #
 
-ARCH := arch_x86
+ARCH ?= mock
 
-# Include a simple demo that can be debugged
-INCLUDE_DEMO = 1
-
-CC           = gcc
-CFLAGS       = -Werror -ansi -Os -g -ffunction-sections -fno-stack-protector -I$(ARCH) -I$(PWD)
-LD           = ld
-LDFLAGS      = --script=gdbstub.ld --gc-sections
+CFLAGS       = -Werror -ansi -g -Iarch_$(ARCH) -I$(PWD)
 NASM         = nasm
 NASM_FLAGS   = -felf
 OBJCOPY      = objcopy
 OBJCOPYFLAGS = --output-target=binary
-TARGET       = gdbstub.bin
 BASE_ADDRESS = 0x500000
+TARGET       = gdbstub-$(ARCH).bin
 OBJECTS      = gdbstub.o \
-               $(ARCH)/gdbstub_sys.o
+               arch_$(ARCH)/gdbstub_sys.o
 
-ifeq ($(ARCH),arch_x86)
-CFLAGS  += -m32
-LDFLAGS += -m elf_i386
-OBJECTS += $(ARCH)/gdbstub_int.o
+INCLUDE_DEMO ?= 0
+
+ifeq ($(ARCH),mock)
+CFLAGS += -DDEFINE_MAIN -DUSE_STDIO
+TARGET = gdbstub-mock
+INCLUDE_DEMO = 0
+else ifeq ($(ARCH),x86)
+CFLAGS  += -Os -m32 -ffunction-sections -fno-stack-protector
+LDFLAGS += -m elf_i386 --gc-sections
+OBJECTS += arch_$(ARCH)/gdbstub_int.o
 else
 $(error Please specify a supported architecture)
 endif
 
 ifeq ($(INCLUDE_DEMO),1)
-OBJECTS += demo/demo.o
+	OBJECTS += demo/demo.o
 endif
 
 all: $(TARGET)
-.PRECIOUS: %.elf
+
+gdbstub-mock: $(OBJECTS)
+	$(CC) -o $@ $^
 
 %.bin: %.elf
 	$(OBJCOPY) $(OBJCOPYFLAGS) $^ $@
 
+.PRECIOUS: %.elf
 %.elf: $(OBJECTS) gdbstub.ld
-	$(LD) $(LDFLAGS) -o $@ $(OBJECTS)
+	$(LD) --script=gdbstub.ld $(LDFLAGS) -o $@ $(OBJECTS)
 
 gdbstub.ld: gdbstub.ld.in Makefile
 	$(CC) -o $@ -x c -P -E \
@@ -78,6 +81,3 @@ clean:
 		$(TARGET:.bin=.elf) \
 		$(OBJECTS) \
 		gdbstub.ld
-
-gdbstub-mock: gdbstub.c arch_mock/gdbstub_sys.c
-	$(CC) -o $@ -I. -Iarch_mock -DDEFINE_MAIN -DUSE_STDIO -DDEBUG $^
