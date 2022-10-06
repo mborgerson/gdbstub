@@ -285,7 +285,7 @@ int dbg_serial_putchar(int ch)
 /*
  * Write one character to the debugging stream.
  */
-int dbg_sys_putchar(int ch)
+int dbg_sys_putchar(struct dbg_state *state, int ch)
 {
 	return dbg_serial_putchar(ch);
 }
@@ -293,7 +293,7 @@ int dbg_sys_putchar(int ch)
 /*
  * Read one character from the debugging stream.
  */
-int dbg_sys_getc(void)
+int dbg_sys_getc(struct dbg_state *state)
 {
 	return dbg_serial_getc() & 0xff;
 }
@@ -301,7 +301,7 @@ int dbg_sys_getc(void)
 /*
  * Read one byte from memory.
  */
-int dbg_sys_mem_readb(address addr, char *val)
+int dbg_sys_mem_readb(struct dbg_state *state, address addr, char *val)
 {
 	*val = *(volatile char *)addr;
 	return 0;
@@ -310,7 +310,7 @@ int dbg_sys_mem_readb(address addr, char *val)
 /*
  * Write one byte to memory.
  */
-int dbg_sys_mem_writeb(address addr, char val)
+int dbg_sys_mem_writeb(struct dbg_state *state, address addr, char val)
 {
 	*(volatile char *)addr = val;
 	return 0;
@@ -319,7 +319,7 @@ int dbg_sys_mem_writeb(address addr, char val)
 /*
  * Continue program execution.
  */
-int dbg_sys_continue(void)
+int dbg_sys_continue(struct dbg_state *state)
 {
 	dbg_state.registers[DBG_CPU_I386_REG_PS] &= ~(1<<8);
 	return 0;
@@ -328,7 +328,7 @@ int dbg_sys_continue(void)
 /*
  * Single step the next instruction.
  */
-int dbg_sys_step(void)
+int dbg_sys_step(struct dbg_state *state)
 {
 	dbg_state.registers[DBG_CPU_I386_REG_PS] |= 1<<8;
 	return 0;

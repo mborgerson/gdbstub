@@ -26,8 +26,10 @@
  * Types
  ****************************************************************************/
 
-typedef int (*dbg_enc_func)(char *buf, size_t buf_len, const char *data, size_t data_len);
-typedef int (*dbg_dec_func)(const char *buf, size_t buf_len, char *data, size_t data_len);
+typedef int (*dbg_enc_func)(char *buf, size_t buf_len, const char *data,
+                            size_t data_len);
+typedef int (*dbg_dec_func)(const char *buf, size_t buf_len, char *data,
+                            size_t data_len);
 
 /*****************************************************************************
  * Const Data
@@ -40,8 +42,8 @@ const char digits[] = "0123456789abcdef";
  ****************************************************************************/
 
 /* Communication functions */
-int dbg_write(const char *buf, size_t len);
-int dbg_read(char *buf, size_t buf_len, size_t len);
+int dbg_write(struct dbg_state *state, const char *buf, size_t len);
+int dbg_read(struct dbg_state *state, char *buf, size_t buf_len, size_t len);
 
 /* String processing helper functions */
 int dbg_strlen(const char *ch);
@@ -51,10 +53,11 @@ int dbg_get_val(char digit, int base);
 int dbg_strtol(const char *str, size_t len, int base, const char **endptr);
 
 /* Packet functions */
-int dbg_send_packet(const char *pkt, size_t pkt_len);
-int dbg_recv_packet(char *pkt_buf, size_t pkt_buf_len, size_t *pkt_len);
+int dbg_send_packet(struct dbg_state *state, const char *pkt, size_t pkt_len);
+int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
+                    size_t *pkt_len);
 int dbg_checksum(const char *buf, size_t len);
-int dbg_recv_ack(void);
+int dbg_recv_ack(struct dbg_state *state);
 
 /* Data encoding/decoding */
 int dbg_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len);
@@ -63,16 +66,21 @@ int dbg_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len);
 int dbg_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len);
 
 /* Packet creation helpers */
-int dbg_send_ok_packet(char *buf, size_t buf_len);
-int dbg_send_conmsg_packet(char *buf, size_t buf_len, const char *msg);
-int dbg_send_signal_packet(char *buf, size_t buf_len, char signal);
-int dbg_send_error_packet(char *buf, size_t buf_len, char error);
+int dbg_send_ok_packet(struct dbg_state *state, char *buf, size_t buf_len);
+int dbg_send_conmsg_packet(struct dbg_state *state, char *buf, size_t buf_len,
+                           const char *msg);
+int dbg_send_signal_packet(struct dbg_state *state, char *buf, size_t buf_len,
+                           char signal);
+int dbg_send_error_packet(struct dbg_state *state, char *buf, size_t buf_len,
+                          char error);
 
 /* Command functions */
-int dbg_mem_read(char *buf, size_t buf_len, address addr, size_t len, dbg_enc_func enc);
-int dbg_mem_write(const char *buf, size_t buf_len, address addr, size_t len, dbg_dec_func dec);
-int dbg_continue(void);
-int dbg_step(void);
+int dbg_mem_read(struct dbg_state *state, char *buf, size_t buf_len,
+                 address addr, size_t len, dbg_enc_func enc);
+int dbg_mem_write(struct dbg_state *state, const char *buf, size_t buf_len,
+                  address addr, size_t len, dbg_dec_func dec);
+int dbg_continue(struct dbg_state *state);
+int dbg_step(struct dbg_state *state);
 
 /*****************************************************************************
  * String Processing Helper Functions
@@ -220,12 +228,12 @@ int dbg_is_printable_char(char ch)
  *    1   if a NACK (-) was received
  *    EOF otherwise
  */
-int dbg_recv_ack(void)
+int dbg_recv_ack(struct dbg_state *state)
 {
 	int response;
 
 	/* Wait for packet ack */
-	switch (response = dbg_sys_getc()) {
+	switch (response = dbg_sys_getc(state)) {
 	case '+':
 		/* Packet acknowledged */
 		return 0;
@@ -267,13 +275,14 @@ int dbg_checksum(const char *buf, size_t len)
  *    1   if the packet was transmitted but not acknowledged
  *    EOF otherwise
  */
-int dbg_send_packet(const char *pkt_data, size_t pkt_len)
+int dbg_send_packet(struct dbg_state *state, const char *pkt_data,
+                    size_t pkt_len)
 {
 	char buf[3];
 	char csum;
 
 	/* Send packet start */
-	if (dbg_sys_putchar('$') == EOF) {
+	if (dbg_sys_putchar(state, '$') == EOF) {
 		return EOF;
 	}
 
@@ -293,7 +302,7 @@ int dbg_send_packet(const char *pkt_data, size_t pkt_len)
 #endif
 
 	/* Send packet data */
-	if (dbg_write(pkt_data, pkt_len) == EOF) {
+	if (dbg_write(state, pkt_data, pkt_len) == EOF) {
 		return EOF;
 	}
 
@@ -301,11 +310,11 @@ int dbg_send_packet(const char *pkt_data, size_t pkt_len)
 	buf[0] = '#';
 	csum = dbg_checksum(pkt_data, pkt_len);
 	if ((dbg_enc_hex(buf+1, sizeof(buf)-1, &csum, 1) == EOF) ||
-		(dbg_write(buf, sizeof(buf)) == EOF)) {
+		(dbg_write(state, buf, sizeof(buf)) == EOF)) {
 		return EOF;
 	}
 
-	return dbg_recv_ack();
+	return dbg_recv_ack(state);
 }
 
 /*
@@ -315,7 +324,8 @@ int dbg_send_packet(const char *pkt_data, size_t pkt_len)
  *    0   if the packet was received
  *    EOF otherwise
  */
-int dbg_recv_packet(char *pkt_buf, size_t pkt_buf_len, size_t *pkt_len)
+int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
+                    size_t *pkt_len)
 {
 	int data;
 	char expected_csum, actual_csum;
@@ -325,8 +335,10 @@ int dbg_recv_packet(char *pkt_buf, size_t pkt_buf_len, size_t *pkt_len)
 	actual_csum = 0;
 
 	while (1) {
-		data = dbg_sys_getc();
-		if (data == '$') {
+		data = dbg_sys_getc(state);
+		if (data == EOF) {
+			return EOF;
+		} else if (data == '$') {
 			/* Detected start of packet. */
 			break;
 		}
@@ -335,7 +347,7 @@ int dbg_recv_packet(char *pkt_buf, size_t pkt_buf_len, size_t *pkt_len)
 	/* Read until checksum */
 	*pkt_len = 0;
 	while (1) {
-		data = dbg_sys_getc();
+		data = dbg_sys_getc(state);
 
 		if (data == EOF) {
 			/* Error receiving character */
@@ -371,7 +383,7 @@ int dbg_recv_packet(char *pkt_buf, size_t pkt_buf_len, size_t *pkt_len)
 #endif
 
 	/* Receive the checksum */
-	if ((dbg_read(buf, sizeof(buf), 2) == EOF) ||
+	if ((dbg_read(state, buf, sizeof(buf), 2) == EOF) ||
 		(dbg_dec_hex(buf, 2, &expected_csum, 1) == EOF)) {
 		return EOF;
 	}
@@ -381,12 +393,12 @@ int dbg_recv_packet(char *pkt_buf, size_t pkt_buf_len, size_t *pkt_len)
 	if (actual_csum != expected_csum) {
 		/* Send packet nack */
 		DEBUG_PRINT("received packet with bad checksum\n");
-		dbg_sys_putchar('-');
+		dbg_sys_putchar(state, '-');
 		return EOF;
 	}
 
 	/* Send packet ack */
-	dbg_sys_putchar('+');
+	dbg_sys_putchar(state, '+');
 	return 0;
 }
 
@@ -539,7 +551,8 @@ int dbg_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len)
  *    0+  number of bytes written to buf
  *    EOF if the buffer is too small
  */
-int dbg_mem_read(char *buf, size_t buf_len, address addr, size_t len, dbg_enc_func enc)
+int dbg_mem_read(struct dbg_state *state, char *buf, size_t buf_len,
+                 address addr, size_t len, dbg_enc_func enc)
 {
 	char data[64];
 	size_t pos;
@@ -550,7 +563,7 @@ int dbg_mem_read(char *buf, size_t buf_len, address addr, size_t len, dbg_enc_fu
 
 	/* Read from system memory */
 	for (pos = 0; pos < len; pos++) {
-		if (dbg_sys_mem_readb(addr+pos, &data[pos])) {
+		if (dbg_sys_mem_readb(state, addr+pos, &data[pos])) {
 			/* Failed to read */
 			return EOF;
 		}
@@ -563,7 +576,8 @@ int dbg_mem_read(char *buf, size_t buf_len, address addr, size_t len, dbg_enc_fu
 /*
  * Write to memory from encoded buf.
  */
-int dbg_mem_write(const char *buf, size_t buf_len, address addr, size_t len, dbg_dec_func dec)
+int dbg_mem_write(struct dbg_state *state, const char *buf, size_t buf_len,
+                  address addr, size_t len, dbg_dec_func dec)
 {
 	char data[64];
 	size_t pos;
@@ -579,7 +593,7 @@ int dbg_mem_write(const char *buf, size_t buf_len, address addr, size_t len, dbg
 
 	/* Write to system memory */
 	for (pos = 0; pos < len; pos++) {
-		if (dbg_sys_mem_writeb(addr+pos, data[pos])) {
+		if (dbg_sys_mem_writeb(state, addr+pos, data[pos])) {
 			/* Failed to write */
 			return EOF;
 		}
@@ -591,18 +605,18 @@ int dbg_mem_write(const char *buf, size_t buf_len, address addr, size_t len, dbg
 /*
  * Continue program execution at PC.
  */
-int dbg_continue(void)
+int dbg_continue(struct dbg_state *state)
 {
-	dbg_sys_continue();
+	dbg_sys_continue(state);
 	return 0;
 }
 
 /*
  * Step one instruction.
  */
-int dbg_step(void)
+int dbg_step(struct dbg_state *state)
 {
-	dbg_sys_step();
+	dbg_sys_step(state);
 	return 0;
 }
 
@@ -613,15 +627,16 @@ int dbg_step(void)
 /*
  * Send OK packet
  */
-int dbg_send_ok_packet(char *buf, size_t buf_len)
+int dbg_send_ok_packet(struct dbg_state *state, char *buf, size_t buf_len)
 {
-	return dbg_send_packet("OK", 2);
+	return dbg_send_packet(state, "OK", 2);
 }
 
 /*
  * Send a message to the debugging console (via O XX... packet)
  */
-int dbg_send_conmsg_packet(char *buf, size_t buf_len, const char *msg)
+int dbg_send_conmsg_packet(struct dbg_state *state, char *buf, size_t buf_len,
+                           const char *msg)
 {
 	size_t size;
 	int status;
@@ -637,13 +652,14 @@ int dbg_send_conmsg_packet(char *buf, size_t buf_len, const char *msg)
 		return EOF;
 	}
 	size = 1 + status;
-	return dbg_send_packet(buf, size);
+	return dbg_send_packet(state, buf, size);
 }
 
 /*
  * Send a signal packet (S AA).
  */
-int dbg_send_signal_packet(char *buf, size_t buf_len, char signal)
+int dbg_send_signal_packet(struct dbg_state *state, char *buf, size_t buf_len,
+                           char signal)
 {
 	size_t size;
 	int status;
@@ -659,13 +675,14 @@ int dbg_send_signal_packet(char *buf, size_t buf_len, char signal)
 		return EOF;
 	}
 	size = 1 + status;
-	return dbg_send_packet(buf, size);
+	return dbg_send_packet(state, buf, size);
 }
 
 /*
  * Send a error packet (E AA).
  */
-int dbg_send_error_packet(char *buf, size_t buf_len, char error)
+int dbg_send_error_packet(struct dbg_state *state, char *buf, size_t buf_len,
+                          char error)
 {
 	size_t size;
 	int status;
@@ -681,7 +698,7 @@ int dbg_send_error_packet(char *buf, size_t buf_len, char error)
 		return EOF;
 	}
 	size = 1 + status;
-	return dbg_send_packet(buf, size);
+	return dbg_send_packet(state, buf, size);
 }
 
 /*****************************************************************************
@@ -695,10 +712,10 @@ int dbg_send_error_packet(char *buf, size_t buf_len, char error)
  *    0   if successful
  *    EOF if failed to write all bytes
  */
-int dbg_write(const char *buf, size_t len)
+int dbg_write(struct dbg_state *state, const char *buf, size_t len)
 {
 	while (len--) {
-		if (dbg_sys_putchar(*buf++) == EOF) {
+		if (dbg_sys_putchar(state, *buf++) == EOF) {
 			return EOF;
 		}
 	}
@@ -713,7 +730,7 @@ int dbg_write(const char *buf, size_t len)
  *    0   if successfully read len bytes
  *    EOF if failed to read all bytes
  */
-int dbg_read(char *buf, size_t buf_len, size_t len)
+int dbg_read(struct dbg_state *state, char *buf, size_t buf_len, size_t len)
 {
 	char c;
 
@@ -723,7 +740,7 @@ int dbg_read(char *buf, size_t buf_len, size_t len)
 	}
 
 	while (len--) {
-		if ((c = dbg_sys_getc()) == EOF) {
+		if ((c = dbg_sys_getc(state)) == EOF) {
 			return EOF;
 		}
 		*buf++ = c;
@@ -748,11 +765,11 @@ int dbg_main(struct dbg_state *state)
 	size_t      pkt_len;
 	const char *ptr_next;
 
-	dbg_send_signal_packet(pkt_buf, sizeof(pkt_buf), state->signum);
+	dbg_send_signal_packet(state, pkt_buf, sizeof(pkt_buf), state->signum);
 
 	while (1) {
 		/* Receive the next packet */
-		status = dbg_recv_packet(pkt_buf, sizeof(pkt_buf), &pkt_len);
+		status = dbg_recv_packet(state, pkt_buf, sizeof(pkt_buf), &pkt_len);
 		if (status == EOF) {
 			break;
 		}
@@ -805,7 +822,7 @@ int dbg_main(struct dbg_state *state)
 				goto error;
 			}
 			pkt_len = status;
-			dbg_send_packet(pkt_buf, pkt_len);
+			dbg_send_packet(state, pkt_buf, pkt_len);
 			break;
 		
 		/*
@@ -819,7 +836,7 @@ int dbg_main(struct dbg_state *state)
 			if (status == EOF) {
 				goto error;
 			}
-			dbg_send_ok_packet(pkt_buf, sizeof(pkt_buf));
+			dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
 			break;
 
 		/*
@@ -841,7 +858,7 @@ int dbg_main(struct dbg_state *state)
 			if (status == EOF) {
 				goto error;
 			}
-			dbg_send_packet(pkt_buf, status);
+			dbg_send_packet(state, pkt_buf, status);
 			break;
 		
 		/*
@@ -861,7 +878,7 @@ int dbg_main(struct dbg_state *state)
 					goto error;
 				}
 			}
-			dbg_send_ok_packet(pkt_buf, sizeof(pkt_buf));
+			dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
 			break;
 		
 		/*
@@ -875,12 +892,12 @@ int dbg_main(struct dbg_state *state)
 			token_expect_integer_arg(length);
 
 			/* Read Memory */
-			status = dbg_mem_read(pkt_buf, sizeof(pkt_buf),
+			status = dbg_mem_read(state, pkt_buf, sizeof(pkt_buf),
 			                      addr, length, dbg_enc_hex);
 			if (status == EOF) {
 				goto error;
 			}
-			dbg_send_packet(pkt_buf, status);
+			dbg_send_packet(state, pkt_buf, status);
 			break;
 		
 		/*
@@ -895,12 +912,12 @@ int dbg_main(struct dbg_state *state)
 			token_expect_seperator(':');
 
 			/* Write Memory */
-			status = dbg_mem_write(ptr_next, token_remaining_buf,
+			status = dbg_mem_write(state, ptr_next, token_remaining_buf,
 			                       addr, length, dbg_dec_hex);
 			if (status == EOF) {
 				goto error;
 			}
-			dbg_send_ok_packet(pkt_buf, sizeof(pkt_buf));
+			dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
 			break;
 
 		/*
@@ -915,12 +932,12 @@ int dbg_main(struct dbg_state *state)
 			token_expect_seperator(':');
 
 			/* Write Memory */
-			status = dbg_mem_write(ptr_next, token_remaining_buf,
+			status = dbg_mem_write(state, ptr_next, token_remaining_buf,
 			                       addr, length, dbg_dec_bin);
 			if (status == EOF) {
 				goto error;
 			}
-			dbg_send_ok_packet(pkt_buf, sizeof(pkt_buf));
+			dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
 			break;
 
 		/* 
@@ -928,7 +945,7 @@ int dbg_main(struct dbg_state *state)
 		 * Command Format: c [addr]
 		 */
 		case 'c':
-			dbg_continue();
+			dbg_continue(state);
 			return 0;
 
 		/*
@@ -936,24 +953,24 @@ int dbg_main(struct dbg_state *state)
 		 * Command Format: s [addr]
 		 */
 		case 's':
-			dbg_step();
+			dbg_step(state);
 			return 0;
 
 		case '?':
-			dbg_send_signal_packet(pkt_buf, sizeof(pkt_buf), state->signum);
+			dbg_send_signal_packet(state, pkt_buf, sizeof(pkt_buf), state->signum);
 			break;
 
 		/*
 		 * Unsupported Command
 		 */
 		default:
-			dbg_send_packet(NULL, 0);
+			dbg_send_packet(state, NULL, 0);
 		}
 
 		continue;
 
 	error:
-		dbg_send_error_packet(pkt_buf, sizeof(pkt_buf), 0x00);
+		dbg_send_error_packet(state, pkt_buf, sizeof(pkt_buf), 0x00);
 
 		#undef token_remaining_buf
 		#undef token_expect_seperator
