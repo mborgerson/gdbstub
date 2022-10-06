@@ -54,4 +54,4 @@ License
 This software is published under the terms of the MIT License. See `LICENSE.txt`
 for full license.
 
-Matt Borgerson, 2016-2019
+Matt Borgerson, 2016-2022
