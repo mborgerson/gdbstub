@@ -31,11 +31,11 @@
 
 int main(int argc, char const *argv[])
 {
-    struct dbg_state state;
+    struct gdb_state state;
     state.signum = 5;
     memset(&state.registers, 0, sizeof(state.registers));
     while (!feof(stdin)) {
-        dbg_main(&state);
+        gdb_main(&state);
     }
     return 0;
 }
@@ -58,7 +58,7 @@ __attribute__((section(".text._start")))
 void _start(void)
 {
 	/* Enable debugging hooks and break */
-	dbg_sys_init();
+	gdb_sys_init();
 
 	/* Example code to debug through... */
 	simple_loop();
