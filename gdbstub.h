@@ -1315,17 +1315,13 @@ struct gdb_interrupt_state {
     uint32_t cs;
     uint32_t eflags;
 };
-#pragma pack()
 
-#pragma pack(1)
 struct gdb_idtr
 {
     uint16_t len;
     uint32_t offset;
 };
-#pragma pack()
 
-#pragma pack(1)
 struct gdb_idt_gate
 {
     uint16_t offset_low;
