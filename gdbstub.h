@@ -196,7 +196,7 @@ typedef int (*gdb_dec_func)(const char *buf, size_t buf_len, char *data,
  * Const Data
  ****************************************************************************/
 
-const char digits[] = "0123456789abcdef";
+static const char digits[] = "0123456789abcdef";
 
 /*****************************************************************************
  * Prototypes
@@ -1322,7 +1322,7 @@ struct gdb_idt_gate
  * Const Data
  ****************************************************************************/
 
-extern void const * const gdb_int_handlers[];
+extern void const * const gdb_x86_int_handlers[];
 
 /*****************************************************************************
  * Prototypes
@@ -1407,9 +1407,9 @@ void gdb_x86_init_gates(void)
         gdb_idt_gates[i].flags       = 0x8E00;
         gdb_idt_gates[i].segment     = cs;
         gdb_idt_gates[i].offset_low  =
-            ((uint32_t)gdb_int_handlers[i]      ) & 0xffff;
+            ((uint32_t)gdb_x86_int_handlers[i]      ) & 0xffff;
         gdb_idt_gates[i].offset_high =
-            ((uint32_t)gdb_int_handlers[i] >> 16) & 0xffff;
+            ((uint32_t)gdb_x86_int_handlers[i] >> 16) & 0xffff;
     }
 }
 
@@ -1650,8 +1650,8 @@ int gdb_sys_step(struct gdb_state *state)
 void gdb_sys_init(void)
 {
     /* Hook current IDT. */
-    gdb_x86_hook_idt(1, gdb_int_handlers[1]);
-    gdb_x86_hook_idt(3, gdb_int_handlers[3]);
+    gdb_x86_hook_idt(1, gdb_x86_int_handlers[1]);
+    gdb_x86_hook_idt(3, gdb_x86_int_handlers[3]);
 
     /* Interrupt to start debugging. */
     asm volatile ("int3");

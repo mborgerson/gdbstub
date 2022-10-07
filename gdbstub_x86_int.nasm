@@ -25,12 +25,12 @@ bits 32
 %define NUM_HANDLERS 32
 
 section .data
-global gdb_int_handlers
+global gdb_x86_int_handlers
 
 ; Generate table of handlers
-gdb_int_handlers:
+gdb_x86_int_handlers:
 %macro handler_addr 1
-	dd gdb_int_handler_%1
+	dd gdb_x86_int_handler_%1
 %endmacro
 %assign i 0
 %rep NUM_HANDLERS
@@ -42,17 +42,17 @@ section .text
 extern gdb_x86_int_handler
 
 %macro int 1
-gdb_int_handler_%1:
+gdb_x86_int_handler_%1:
 	push    0  ; Dummy Error code
 	push    %1 ; Interrupt Vector
-	jmp     gdb_int_handler_common
+	jmp     gdb_x86_int_handler_common
 %endmacro
 
 %macro inte 1
-gdb_int_handler_%1:
+gdb_x86_int_handler_%1:
 	; Error code already on stack
 	push    %1 ; Interrupt Vector
-	jmp     gdb_int_handler_common
+	jmp     gdb_x86_int_handler_common
 %endmacro
 
 ; Generate Interrupt Handlers
@@ -67,7 +67,7 @@ gdb_int_handler_%1:
 %endrep
 
 ; Common Interrupt Handler
-gdb_int_handler_common:
+gdb_x86_int_handler_common:
 	pushad
 	push    ds
 	push    es
