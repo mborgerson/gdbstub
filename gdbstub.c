@@ -20,10 +20,28 @@
  * SOFTWARE.
  */
 
+#ifdef GDBSTUB_ARCH_MOCK
+#define USE_STDIO
+#endif
+
 #define GDBSTUB_IMPLEMENTATION
 #include "gdbstub.h"
 
-#ifndef GDBSTUB_ARCH_MOCK
+#ifdef GDBSTUB_ARCH_MOCK
+
+int main(int argc, char const *argv[])
+{
+    struct dbg_state state;
+    state.signum = 5;
+    memset(&state.registers, 0, sizeof(state.registers));
+    while (!feof(stdin)) {
+        dbg_main(&state);
+    }
+    return 0;
+}
+
+#else
+
 void simple_loop(void)
 {
 	volatile int x;
@@ -40,9 +58,10 @@ __attribute__((section(".text._start")))
 void _start(void)
 {
 	/* Enable debugging hooks and break */
-	dbg_start();
+	dbg_sys_init();
 
 	/* Example code to debug through... */
 	simple_loop();
 }
+
 #endif

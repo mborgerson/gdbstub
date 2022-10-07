@@ -39,7 +39,7 @@ dbg_int_handlers:
 %endrep
 
 section .text
-extern dbg_int_handler
+extern dbg_x86_int_handler
 
 %macro int 1
 dbg_int_handler_%1:
@@ -97,7 +97,7 @@ dbg_int_handler_common:
 	; - SS
 
 	push    ebp
-	call    dbg_int_handler
+	call    dbg_x86_int_handler
 
 	mov     esp, ebp
 	pop     ss
