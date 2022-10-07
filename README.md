@@ -15,20 +15,24 @@ Usage
 In some `.c` file in your project:
 
 ```c
-	#define GDBSTUB_ARCH_X86
-	#define GDBSTUB_IMPLEMENTATION
-	#include "gdbstub.h"
+/* Define to enable bare metal x86 support, or define your own architecture */
+#define GDBSTUB_ARCH_X86
 
-	void _start(void) {
-		dbg_sys_init(); /* Setup, wait for debugger on serial port  */
-	}
+/* Enable function definitions */
+#define GDBSTUB_IMPLEMENTATION
+
+#include "gdbstub.h"
+
+void _start(void) {
+	dbg_sys_init(); /* Setup, wait for debugger on serial port  */
+}
 ```
 
 See `gdbstub.c` for example usage.
 
 Architecture Support
 --------------------
-* `GDBSTUB_ARCH_MOCK`: "Mock" architecture, for demonstration ()
+* `GDBSTUB_ARCH_MOCK`: A mock architecture for testing
 * `GDBSTUB_ARCH_X86`: Bare-metal x86 (32-bit)
 
 Porting
@@ -36,10 +40,10 @@ Porting
 This was originally developed for embedded x86 systems, but it's fairly modular.
 With a little effort, it can be easily ported to other platforms.
 
-I copying the mock architecture functions then modifying `gdb_sys_*` functions
-and types to fit your platform's needs accordingly.
+I recommend copying the mock architecture implementation and adjusting it to fit
+your platform's needs accordingly.
 
-I welcome PR's for other platforms!
+PR's for other platforms are welcome!
 
 Building
 --------
@@ -83,7 +87,7 @@ the virtual serial port and begin debugging the demo application:
 
 For example, step a couple of times and print out the value of `x`:
 
-	(gdb) s 2
+	(gdb) s 3
 	(gdb) p/x x
 	$1 = 0xdeadbeef
 
