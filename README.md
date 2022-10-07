@@ -1,9 +1,13 @@
 gdbstub
 =======
-This is a simple, single-file GDB stub library that can be easily dropped in to
+This is a simple, single-file[^1] GDB stub library that can be easily dropped in to
 your project to allow you to debug a target platform using GDB (or another
 application which supports remote GDB targets). It has no library dependencies
 (such as libc) and requires just standard tools to build.
+
+[^1]: The main protocol bits and most architecture support is in a single
+      file: gdbstub.h. Some platform files might also be required depending on
+      your use case.
 
 Protocol
 --------
@@ -33,7 +37,7 @@ See `gdbstub.c` for example usage.
 Architecture Support
 --------------------
 * `GDBSTUB_ARCH_MOCK`: A mock architecture for testing
-* `GDBSTUB_ARCH_X86`: Bare-metal x86 (32-bit)
+* `GDBSTUB_ARCH_X86`: Bare-metal x86 (32-bit). You'll also need interrupt handlers (so not .
 
 Porting
 -------
