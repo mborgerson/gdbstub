@@ -1,6 +1,8 @@
 #!/bin/bash
-make ARCH=x86 clean
-make ARCH=x86
+export ARCH=x86
+export INCLUDE_DEMO=1
+make clean
+make
 
 echo "Launching QEMU"
 qemu-system-i386 \

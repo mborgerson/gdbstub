@@ -28,20 +28,20 @@
 #include "gdbstub.h"
 
 #ifdef GDBSTUB_ARCH_MOCK
-
+/* Just a simple main function to interact with the mock machine */
 int main(int argc, char const *argv[])
 {
     struct gdb_state state;
-    state.signum = 5;
     memset(&state.registers, 0, sizeof(state.registers));
     while (!feof(stdin)) {
+        state.signum = 5;
         gdb_main(&state);
     }
     return 0;
 }
+#else /* GDBSTUB_ARCH_MOCK */
 
-#else
-
+#ifdef INCLUDE_DEMO
 void simple_loop(void)
 {
 	volatile int x;
@@ -52,16 +52,17 @@ void simple_loop(void)
 		x ^= (1 << (i % 32));
 	}
 }
+#endif /* INCLUDE_DEMO */
 
-/* This will be called at startup. */
 __attribute__((section(".text._start")))
 void _start(void)
 {
 	/* Enable debugging hooks and break */
 	gdb_sys_init();
 
+#ifdef INCLUDE_DEMO
 	/* Example code to debug through... */
 	simple_loop();
-}
-
 #endif
+}
+#endif /* GDBSTUB_ARCH_MOCK */
