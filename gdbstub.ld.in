@@ -24,11 +24,7 @@
 #define INCLUDE_DEMO 0
 #endif
 
-#if INCLUDE_DEMO
 #define ENTRYPOINT _start
-#else
-#define ENTRYPOINT dbg_start
-#endif
 
 #define MULTIBOOT_MAGIC 0x1badb002
 #define MULTIBOOT_FLAGS 0x10000
@@ -44,7 +40,7 @@ MEMORY
 SECTIONS
 {
 	.text : {
-		*(.text.dbg_start)
+		*(.text._start)
 
 #if INCLUDE_DEMO
 		. = ALIGN(16);
