@@ -1356,6 +1356,8 @@ static uint32_t gdb_x86_get_cs(void);
 static void gdb_x86_interrupt(struct gdb_interrupt_state *istate);
 static void gdb_x86_io_write_8(uint16_t port, uint8_t val);
 static uint8_t gdb_x86_io_read_8(uint16_t port);
+static int gdb_x86_serial_getc(void);
+static int gdb_x86_serial_putchar(int ch);
 
 #ifdef __STRICT_ANSI__
 #define asm __asm__
