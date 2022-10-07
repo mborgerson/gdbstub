@@ -72,14 +72,11 @@ int gdb_buf_read(struct gdb_buffer *buf);
 
 #ifdef GDBSTUB_ARCH_X86
 
-#define GDB_DEFINE_SIZET_TYPE 1
-#define GDB_DEFINE_STDINT_TYPES 1
-
 /*****************************************************************************
  * Types
  ****************************************************************************/
 
-#if GDB_DEFINE_STDINT_TYPES
+#ifndef GDBSTUB_DONT_DEFINE_STDINT_TYPES
 typedef unsigned char  uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long  uint32_t;
@@ -135,9 +132,7 @@ struct gdb_state {
 #define GDB_PRINT(...)
 #endif
 
-#ifndef GDB_EOF
 #define GDB_EOF (-1)
-#endif
 
 #ifndef NULL
 #define NULL ((void*)0)
