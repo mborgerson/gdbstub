@@ -74,69 +74,25 @@ int dbg_buf_read(struct dbg_buffer *buf);
 
 #ifdef GDBSTUB_ARCH_X86
 
-/* Define the size_t type */
-#define DBG_DEFINE_SIZET 1
-
-/* Define required standard integer types (e.g. uint16_t) */
-#define DBG_DEFINE_STDINT 1
+#define DBG_DEFINE_SIZET_TYPE 1
+#define DBG_DEFINE_STDINT_TYPES 1
 
 /*****************************************************************************
  * Types
  ****************************************************************************/
 
-#if DBG_DEFINE_STDINT
+#if DBG_DEFINE_STDINT_TYPES
 typedef unsigned char  uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long  uint32_t;
 #endif
 
-#if DBG_DEFINE_SIZET
+#if DBG_DEFINE_SIZET_TYPE
 typedef unsigned int size_t;
 #endif
 
 typedef unsigned int address;
 typedef unsigned int reg;
-
-#pragma pack(1)
-struct dbg_interrupt_state {
-    uint32_t ss;
-    uint32_t gs;
-    uint32_t fs;
-    uint32_t es;
-    uint32_t ds;
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t ebp;
-    uint32_t esp;
-    uint32_t ebx;
-    uint32_t edx;
-    uint32_t ecx;
-    uint32_t eax;
-    uint32_t vector;
-    uint32_t error_code;
-    uint32_t eip;
-    uint32_t cs;
-    uint32_t eflags;
-};
-#pragma pack()
-
-#pragma pack(1)
-struct dbg_idtr
-{
-    uint16_t len;
-    uint32_t offset;
-};
-#pragma pack()
-
-#pragma pack(1)
-struct dbg_idt_gate
-{
-    uint16_t offset_low;
-    uint16_t segment;
-    uint16_t flags;
-    uint16_t offset_high;
-};
-#pragma pack()
 
 enum DBG_REGISTER {
     DBG_CPU_I386_REG_EAX  = 0,
@@ -162,28 +118,6 @@ struct dbg_state {
     int signum;
     reg registers[DBG_CPU_NUM_REGISTERS];
 };
-
-/*****************************************************************************
- * Const Data
- ****************************************************************************/
-
-extern void const * const dbg_int_handlers[];
-
-/*****************************************************************************
- * Prototypes
- ****************************************************************************/
-
-void dbg_x86_hook_idt(uint8_t vector, const void *function);
-void dbg_x86_init_gates(void);
-void dbg_x86_init_idt(void);
-void dbg_x86_load_idt(struct dbg_idtr *idtr);
-void dbg_x86_store_idt(struct dbg_idtr *idtr);
-uint32_t dbg_x86_get_cs(void);
-void dbg_x86_int_handler(struct dbg_interrupt_state *istate);
-void dbg_x86_interrupt(struct dbg_interrupt_state *istate);
-void dbg_x86_io_write_8(uint16_t port, uint8_t val);
-uint8_t dbg_x86_io_read_8(uint16_t port);
-void *dbg_x86_sys_memset(void *ptr, int data, size_t len);
 
 #endif /* GDBSTUB_ARCH_X86 */
 
@@ -1338,6 +1272,73 @@ int dbg_sys_step(struct dbg_state *state)
  ****************************************************************************/
 
 #ifdef GDBSTUB_ARCH_X86
+
+/*****************************************************************************
+ * Types
+ ****************************************************************************/
+
+#pragma pack(1)
+struct dbg_interrupt_state {
+    uint32_t ss;
+    uint32_t gs;
+    uint32_t fs;
+    uint32_t es;
+    uint32_t ds;
+    uint32_t edi;
+    uint32_t esi;
+    uint32_t ebp;
+    uint32_t esp;
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+    uint32_t vector;
+    uint32_t error_code;
+    uint32_t eip;
+    uint32_t cs;
+    uint32_t eflags;
+};
+#pragma pack()
+
+#pragma pack(1)
+struct dbg_idtr
+{
+    uint16_t len;
+    uint32_t offset;
+};
+#pragma pack()
+
+#pragma pack(1)
+struct dbg_idt_gate
+{
+    uint16_t offset_low;
+    uint16_t segment;
+    uint16_t flags;
+    uint16_t offset_high;
+};
+#pragma pack()
+
+/*****************************************************************************
+ * Const Data
+ ****************************************************************************/
+
+extern void const * const dbg_int_handlers[];
+
+/*****************************************************************************
+ * Prototypes
+ ****************************************************************************/
+
+void dbg_x86_hook_idt(uint8_t vector, const void *function);
+void dbg_x86_init_gates(void);
+void dbg_x86_init_idt(void);
+void dbg_x86_load_idt(struct dbg_idtr *idtr);
+void dbg_x86_store_idt(struct dbg_idtr *idtr);
+uint32_t dbg_x86_get_cs(void);
+void dbg_x86_int_handler(struct dbg_interrupt_state *istate);
+void dbg_x86_interrupt(struct dbg_interrupt_state *istate);
+void dbg_x86_io_write_8(uint16_t port, uint8_t val);
+uint8_t dbg_x86_io_read_8(uint16_t port);
+void *dbg_x86_sys_memset(void *ptr, int data, size_t len);
 
 #ifdef __STRICT_ANSI__
 #define asm __asm__
