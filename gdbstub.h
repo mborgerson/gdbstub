@@ -36,8 +36,6 @@
 
 #ifdef GDBSTUB_ARCH_MOCK
 
-#include <string.h>
-
 /*****************************************************************************
  * Types
  ****************************************************************************/
@@ -85,10 +83,6 @@ int gdb_buf_read(struct gdb_buffer *buf);
 typedef unsigned char  uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long  uint32_t;
-#endif
-
-#if GDB_DEFINE_SIZET_TYPE
-typedef unsigned int size_t;
 #endif
 
 typedef unsigned int address;
@@ -187,10 +181,10 @@ int gdb_sys_step(struct gdb_state *state);
  * Types
  ****************************************************************************/
 
-typedef int (*gdb_enc_func)(char *buf, size_t buf_len, const char *data,
-                            size_t data_len);
-typedef int (*gdb_dec_func)(const char *buf, size_t buf_len, char *data,
-                            size_t data_len);
+typedef int (*gdb_enc_func)(char *buf, unsigned int buf_len, const char *data,
+                            unsigned int data_len);
+typedef int (*gdb_dec_func)(const char *buf, unsigned int buf_len, char *data,
+                            unsigned int data_len);
 
 /*****************************************************************************
  * Const Data
@@ -203,51 +197,53 @@ static const char digits[] = "0123456789abcdef";
  ****************************************************************************/
 
 /* Communication functions */
-static int gdb_write(struct gdb_state *state, const char *buf, size_t len);
-static int gdb_read(struct gdb_state *state, char *buf, size_t buf_len,
-                    size_t len);
+static int gdb_write(struct gdb_state *state, const char *buf,
+                     unsigned int len);
+static int gdb_read(struct gdb_state *state, char *buf, unsigned int buf_len,
+                    unsigned int len);
 
 /* String processing helper functions */
 static int gdb_strlen(const char *ch);
 static int gdb_is_printable_char(char ch);
 static char gdb_get_digit(int val);
 static int gdb_get_val(char digit, int base);
-static int gdb_strtol(const char *str, size_t len, int base,
+static int gdb_strtol(const char *str, unsigned int len, int base,
                       const char **endptr);
 
 /* Packet functions */
 static int gdb_send_packet(struct gdb_state *state, const char *pkt,
-                           size_t pkt_len);
+                           unsigned int pkt_len);
 static int gdb_recv_packet(struct gdb_state *state, char *pkt_buf,
-                           size_t pkt_buf_len, size_t *pkt_len);
-static int gdb_checksum(const char *buf, size_t len);
+                           unsigned int pkt_buf_len, unsigned int *pkt_len);
+static int gdb_checksum(const char *buf, unsigned int len);
 static int gdb_recv_ack(struct gdb_state *state);
 
 /* Data encoding/decoding */
-static int gdb_enc_hex(char *buf, size_t buf_len, const char *data,
-                       size_t data_len);
-static int gdb_dec_hex(const char *buf, size_t buf_len, char *data,
-                       size_t data_len);
-static int gdb_enc_bin(char *buf, size_t buf_len, const char *data,
-                       size_t data_len);
-static int gdb_dec_bin(const char *buf, size_t buf_len, char *data,
-                       size_t data_len);
+static int gdb_enc_hex(char *buf, unsigned int buf_len, const char *data,
+                       unsigned int data_len);
+static int gdb_dec_hex(const char *buf, unsigned int buf_len, char *data,
+                       unsigned int data_len);
+static int gdb_enc_bin(char *buf, unsigned int buf_len, const char *data,
+                       unsigned int data_len);
+static int gdb_dec_bin(const char *buf, unsigned int buf_len, char *data,
+                       unsigned int data_len);
 
 /* Packet creation helpers */
 static int gdb_send_ok_packet(struct gdb_state *state, char *buf,
-                              size_t buf_len);
+                              unsigned int buf_len);
 static int gdb_send_conmsg_packet(struct gdb_state *state, char *buf,
-                                  size_t buf_len, const char *msg);
+                                  unsigned int buf_len, const char *msg);
 static int gdb_send_signal_packet(struct gdb_state *state, char *buf,
-                                  size_t buf_len, char signal);
+                                  unsigned int buf_len, char signal);
 static int gdb_send_error_packet(struct gdb_state *state, char *buf,
-                                 size_t buf_len, char error);
+                                 unsigned int buf_len, char error);
 
 /* Command functions */
-static int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
-                        address addr, size_t len, gdb_enc_func enc);
+static int gdb_mem_read(struct gdb_state *state, char *buf,
+                        unsigned int buf_len, address addr, unsigned int len,
+                        gdb_enc_func enc);
 static int gdb_mem_write(struct gdb_state *state, const char *buf,
-                         size_t buf_len, address addr, size_t len,
+                         unsigned int buf_len, address addr, unsigned int len,
                          gdb_dec_func dec);
 static int gdb_continue(struct gdb_state *state);
 static int gdb_step(struct gdb_state *state);
@@ -283,10 +279,10 @@ static int gdb_strlen(const char *ch)
  * If endptr is specified, it will point to the last non-digit in the
  * string. If there are no digits in the string, it will be set to NULL.
  */
-static int gdb_strtol(const char *str, size_t len, int base,
+static int gdb_strtol(const char *str, unsigned int len, int base,
                       const char **endptr)
 {
-    size_t pos;
+    unsigned int pos;
     int sign, tmp, value, valid;
 
     value = 0;
@@ -424,7 +420,7 @@ static int gdb_recv_ack(struct gdb_state *state)
  * Returns:
  *    8-bit checksum.
  */
-static int gdb_checksum(const char *buf, size_t len)
+static int gdb_checksum(const char *buf, unsigned int len)
 {
     unsigned char csum;
 
@@ -447,7 +443,7 @@ static int gdb_checksum(const char *buf, size_t len)
  *    GDB_EOF otherwise
  */
 static int gdb_send_packet(struct gdb_state *state, const char *pkt_data,
-                           size_t pkt_len)
+                           unsigned int pkt_len)
 {
     char buf[3];
     char csum;
@@ -459,7 +455,7 @@ static int gdb_send_packet(struct gdb_state *state, const char *pkt_data,
 
 #if DEBUG
     {
-        size_t p;
+        unsigned int p;
         GDB_PRINT("-> ");
         for (p = 0; p < pkt_len; p++) {
             if (gdb_is_printable_char(pkt_data[p])) {
@@ -496,7 +492,7 @@ static int gdb_send_packet(struct gdb_state *state, const char *pkt_data,
  *    GDB_EOF otherwise
  */
 static int gdb_recv_packet(struct gdb_state *state, char *pkt_buf,
-                           size_t pkt_buf_len, size_t *pkt_len)
+                           unsigned int pkt_buf_len, unsigned int *pkt_len)
 {
     int data;
     char expected_csum, actual_csum;
@@ -540,7 +536,7 @@ static int gdb_recv_packet(struct gdb_state *state, char *pkt_buf,
 
 #if DEBUG
     {
-        size_t p;
+        unsigned int p;
         GDB_PRINT("<- ");
         for (p = 0; p < *pkt_len; p++) {
             if (gdb_is_printable_char(pkt_buf[p])) {
@@ -584,10 +580,10 @@ static int gdb_recv_packet(struct gdb_state *state, char *pkt_buf,
  *    0+  number of bytes written to buf
  *    GDB_EOF if the buffer is too small
  */
-static int gdb_enc_hex(char *buf, size_t buf_len, const char *data,
-                       size_t data_len)
+static int gdb_enc_hex(char *buf, unsigned int buf_len, const char *data,
+                       unsigned int data_len)
 {
-    size_t pos;
+    unsigned int pos;
 
     if (buf_len < data_len*2) {
         /* Buffer too small */
@@ -609,10 +605,10 @@ static int gdb_enc_hex(char *buf, size_t buf_len, const char *data,
  *    0   if successful
  *    GDB_EOF if the buffer is too small
  */
-static int gdb_dec_hex(const char *buf, size_t buf_len, char *data,
-                       size_t data_len)
+static int gdb_dec_hex(const char *buf, unsigned int buf_len, char *data,
+                       unsigned int data_len)
 {
-    size_t pos;
+    unsigned int pos;
     int tmp;
 
     if (buf_len != data_len*2) {
@@ -651,10 +647,10 @@ static int gdb_dec_hex(const char *buf, size_t buf_len, char *data,
  *    0+  number of bytes written to buf
  *    GDB_EOF if the buffer is too small
  */
-static int gdb_enc_bin(char *buf, size_t buf_len, const char *data,
-                       size_t data_len)
+static int gdb_enc_bin(char *buf, unsigned int buf_len, const char *data,
+                       unsigned int data_len)
 {
-    size_t buf_pos, data_pos;
+    unsigned int buf_pos, data_pos;
 
     for (buf_pos = 0, data_pos = 0; data_pos < data_len; data_pos++) {
         if (data[data_pos] == '$' ||
@@ -686,10 +682,10 @@ static int gdb_enc_bin(char *buf, size_t buf_len, const char *data,
  *    0+  if successful, number of bytes decoded
  *    GDB_EOF if the buffer is too small
  */
-static int gdb_dec_bin(const char *buf, size_t buf_len, char *data,
-                       size_t data_len)
+static int gdb_dec_bin(const char *buf, unsigned int buf_len, char *data,
+                       unsigned int data_len)
 {
-    size_t buf_pos, data_pos;
+    unsigned int buf_pos, data_pos;
 
     for (buf_pos = 0, data_pos = 0; buf_pos < buf_len; buf_pos++) {
         if (data_pos >= data_len) {
@@ -726,11 +722,12 @@ static int gdb_dec_bin(const char *buf, size_t buf_len, char *data,
  *    0+  number of bytes written to buf
  *    GDB_EOF if the buffer is too small
  */
-static int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
-                        address addr, size_t len, gdb_enc_func enc)
+static int gdb_mem_read(struct gdb_state *state, char *buf,
+                        unsigned int buf_len, address addr, unsigned int len,
+                        gdb_enc_func enc)
 {
     char data[64];
-    size_t pos;
+    unsigned int pos;
 
     if (len > sizeof(data)) {
         return GDB_EOF;
@@ -752,11 +749,11 @@ static int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
  * Write to memory from encoded buf.
  */
 static int gdb_mem_write(struct gdb_state *state, const char *buf,
-                         size_t buf_len, address addr, size_t len,
+                         unsigned int buf_len, address addr, unsigned int len,
                          gdb_dec_func dec)
 {
     char data[64];
-    size_t pos;
+    unsigned int pos;
 
     if (len > sizeof(data)) {
         return GDB_EOF;
@@ -804,7 +801,7 @@ int gdb_step(struct gdb_state *state)
  * Send OK packet
  */
 static int gdb_send_ok_packet(struct gdb_state *state, char *buf,
-                              size_t buf_len)
+                              unsigned int buf_len)
 {
     return gdb_send_packet(state, "OK", 2);
 }
@@ -813,9 +810,9 @@ static int gdb_send_ok_packet(struct gdb_state *state, char *buf,
  * Send a message to the debugging console (via O XX... packet)
  */
 static int gdb_send_conmsg_packet(struct gdb_state *state, char *buf,
-                                  size_t buf_len, const char *msg)
+                                  unsigned int buf_len, const char *msg)
 {
-    size_t size;
+    unsigned int size;
     int status;
 
     if (buf_len < 2) {
@@ -836,9 +833,9 @@ static int gdb_send_conmsg_packet(struct gdb_state *state, char *buf,
  * Send a signal packet (S AA).
  */
 static int gdb_send_signal_packet(struct gdb_state *state, char *buf,
-                                  size_t buf_len, char signal)
+                                  unsigned int buf_len, char signal)
 {
-    size_t size;
+    unsigned int size;
     int status;
 
     if (buf_len < 4) {
@@ -859,9 +856,9 @@ static int gdb_send_signal_packet(struct gdb_state *state, char *buf,
  * Send a error packet (E AA).
  */
 static int gdb_send_error_packet(struct gdb_state *state, char *buf,
-                                 size_t buf_len, char error)
+                                 unsigned int buf_len, char error)
 {
-    size_t size;
+    unsigned int size;
     int status;
 
     if (buf_len < 4) {
@@ -889,7 +886,7 @@ static int gdb_send_error_packet(struct gdb_state *state, char *buf,
  *    0   if successful
  *    GDB_EOF if failed to write all bytes
  */
-static int gdb_write(struct gdb_state *state, const char *buf, size_t len)
+static int gdb_write(struct gdb_state *state, const char *buf, unsigned int len)
 {
     while (len--) {
         if (gdb_sys_putchar(state, *buf++) == GDB_EOF) {
@@ -907,8 +904,8 @@ static int gdb_write(struct gdb_state *state, const char *buf, size_t len)
  *    0   if successfully read len bytes
  *    GDB_EOF if failed to read all bytes
  */
-static int gdb_read(struct gdb_state *state, char *buf, size_t buf_len,
-                    size_t len)
+static int gdb_read(struct gdb_state *state, char *buf, unsigned int buf_len,
+                    unsigned int len)
 {
     char c;
 
@@ -936,11 +933,11 @@ static int gdb_read(struct gdb_state *state, char *buf, size_t buf_len,
  */
 int gdb_main(struct gdb_state *state)
 {
-    address     addr;
-    char        pkt_buf[256];
-    int         status;
-    size_t      length;
-    size_t      pkt_len;
+    address addr;
+    char pkt_buf[256];
+    int status;
+    unsigned int length;
+    unsigned int pkt_len;
     const char *ptr_next;
 
     gdb_send_signal_packet(state, pkt_buf, sizeof(pkt_buf), state->signum);
@@ -1172,15 +1169,13 @@ int gdb_main(struct gdb_state *state)
 #include <stdio.h>
 #include <string.h>
 
-#include "gdbstub.h"
-
 static char gdb_mem[256];
 
 struct gdb_buffer {
     char   *buf;
-    size_t  pos_write;
-    size_t  pos_read;
-    size_t  size;
+    unsigned int pos_write;
+    unsigned int pos_read;
+    unsigned int size;
 } gdb_input, gdb_output;
 
 void gdb_buf_write(struct gdb_buffer *buf, int ch)
@@ -1403,7 +1398,7 @@ static uint32_t gdb_x86_get_cs(void)
  */
 static void gdb_x86_init_gates(void)
 {
-    size_t   i;
+    unsigned int i;
     uint16_t cs;
 
     cs = gdb_x86_get_cs();
