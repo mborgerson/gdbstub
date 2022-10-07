@@ -204,7 +204,9 @@ static int gdb_read(struct gdb_state *state, char *buf, unsigned int buf_len,
 
 /* String processing helper functions */
 static int gdb_strlen(const char *ch);
+#if DEBUG
 static int gdb_is_printable_char(char ch);
+#endif
 static char gdb_get_digit(int val);
 static int gdb_get_val(char digit, int base);
 static int gdb_strtol(const char *str, unsigned int len, int base,
@@ -375,6 +377,7 @@ static int gdb_get_val(char digit, int base)
     return (value < base) ? value : GDB_EOF;
 }
 
+#if DEBUG
 /*
  * Determine if this is a printable ASCII character.
  */
@@ -382,6 +385,7 @@ static int gdb_is_printable_char(char ch)
 {
     return (ch >= 0x20 && ch <= 0x7e);
 }
+#endif
 
 /*****************************************************************************
  * Packet Functions
