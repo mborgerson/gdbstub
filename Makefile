@@ -29,7 +29,7 @@ TARGET       = gdbstub.bin
 OBJECTS      = gdbstub.o
 
 ifeq ($(ARCH),mock)
-CFLAGS += -DDEFINE_MAIN -DUSE_STDIO -DGDBSTUB_ARCH_MOCK
+CFLAGS += -DGDBSTUB_ARCH_MOCK
 TARGET = gdbstub
 INCLUDE_DEMO = 0
 else

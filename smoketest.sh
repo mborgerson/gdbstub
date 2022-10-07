@@ -1,4 +1,5 @@
 #!/bin/bash
+make ARCH=x86 clean
 make ARCH=x86
 
 echo "Launching QEMU"

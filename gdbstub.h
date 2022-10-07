@@ -28,12 +28,6 @@
 #define DEBUG 0
 #endif
 
-#if DEBUG
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#endif
-
 /*****************************************************************************
  *
  *  Mock
@@ -82,6 +76,7 @@ int dbg_buf_read(struct dbg_buffer *buf);
 
 /* Define the size_t type */
 #define DBG_DEFINE_SIZET 1
+
 /* Define required standard integer types (e.g. uint16_t) */
 #define DBG_DEFINE_STDINT 1
 
@@ -178,18 +173,17 @@ extern void const * const dbg_int_handlers[];
  * Prototypes
  ****************************************************************************/
 
-void dbg_hook_idt(uint8_t vector, const void *function);
-void dbg_init_gates(void);
-void dbg_init_idt(void);
-void dbg_load_idt(struct dbg_idtr *idtr);
-void dbg_store_idt(struct dbg_idtr *idtr);
-uint32_t dbg_get_cs(void);
-void dbg_int_handler(struct dbg_interrupt_state *istate);
-void dbg_interrupt(struct dbg_interrupt_state *istate);
-void dbg_start(void);
-void dbg_io_write_8(uint16_t port, uint8_t val);
-uint8_t dbg_io_read_8(uint16_t port);
-void *dbg_sys_memset(void *ptr, int data, size_t len);
+void dbg_x86_hook_idt(uint8_t vector, const void *function);
+void dbg_x86_init_gates(void);
+void dbg_x86_init_idt(void);
+void dbg_x86_load_idt(struct dbg_idtr *idtr);
+void dbg_x86_store_idt(struct dbg_idtr *idtr);
+uint32_t dbg_x86_get_cs(void);
+void dbg_x86_int_handler(struct dbg_interrupt_state *istate);
+void dbg_x86_interrupt(struct dbg_interrupt_state *istate);
+void dbg_x86_io_write_8(uint16_t port, uint8_t val);
+uint8_t dbg_x86_io_read_8(uint16_t port);
+void *dbg_x86_sys_memset(void *ptr, int data, size_t len);
 
 #endif /* GDBSTUB_ARCH_X86 */
 
@@ -204,6 +198,10 @@ void *dbg_sys_memset(void *ptr, int data, size_t len);
  ****************************************************************************/
 
 #if DEBUG
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+
 #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__)
 #else
 #define DBG_PRINT(...)
@@ -241,6 +239,7 @@ void *dbg_sys_memset(void *ptr, int data, size_t len);
 int dbg_main(struct dbg_state *state);
 
 /* System functions, supported by all stubs */
+void dbg_sys_init(void);
 int dbg_sys_getc(struct dbg_state *state);
 int dbg_sys_putchar(struct dbg_state *state, int ch);
 int dbg_sys_mem_readb(struct dbg_state *state, address addr, char *val);
@@ -1329,19 +1328,6 @@ int dbg_sys_step(struct dbg_state *state)
     return 0;
 }
 
-#ifdef DEFINE_MAIN
-int main(int argc, char const *argv[])
-{
-    struct dbg_state state;
-    state.signum = 5;
-    memset(&state.registers, 0, sizeof(state.registers));
-    while (!feof(stdin)) {
-        dbg_main(&state);
-    }
-    return 0;
-}
-#endif
-
 #endif /* GDBSTUB_ARCH_MOCK */
 
 
@@ -1374,7 +1360,7 @@ static struct dbg_state    dbg_state;
  * Misc. Functions
  ****************************************************************************/
 
-void *dbg_sys_memset(void *ptr, int data, size_t len)
+void *dbg_x86_sys_memset(void *ptr, int data, size_t len)
 {
     char *p = ptr;
 
@@ -1388,7 +1374,7 @@ void *dbg_sys_memset(void *ptr, int data, size_t len)
 /*
  * Get current code segment (CS register).
  */
-uint32_t dbg_get_cs(void)
+uint32_t dbg_x86_get_cs(void)
 {
     uint32_t cs;
 
@@ -1410,12 +1396,12 @@ uint32_t dbg_get_cs(void)
 /*
  * Initialize idt_gates with the interrupt handlers.
  */
-void dbg_init_gates(void)
+void dbg_x86_init_gates(void)
 {
     size_t   i;
     uint16_t cs;
 
-    cs = dbg_get_cs();
+    cs = dbg_x86_get_cs();
     for (i = 0; i < NUM_IDT_ENTRIES; i++) {
         dbg_idt_gates[i].flags       = 0x8E00;
         dbg_idt_gates[i].segment     = cs;
@@ -1429,7 +1415,7 @@ void dbg_init_gates(void)
 /*
  * Load a new IDT.
  */
-void dbg_load_idt(struct dbg_idtr *idtr)
+void dbg_x86_load_idt(struct dbg_idtr *idtr)
 {
     asm volatile (
         "lidt    %0"
@@ -1442,7 +1428,7 @@ void dbg_load_idt(struct dbg_idtr *idtr)
 /*
  * Get current IDT.
  */
-void dbg_store_idt(struct dbg_idtr *idtr)
+void dbg_x86_store_idt(struct dbg_idtr *idtr)
 {
     asm volatile (
         "sidt    %0"
@@ -1455,15 +1441,15 @@ void dbg_store_idt(struct dbg_idtr *idtr)
 /*
  * Hook a vector of the current IDT.
  */
-void dbg_hook_idt(uint8_t vector, const void *function)
+void dbg_x86_hook_idt(uint8_t vector, const void *function)
 {
     struct dbg_idtr      idtr;
     struct dbg_idt_gate *gates;
 
-    dbg_store_idt(&idtr);
+    dbg_x86_store_idt(&idtr);
     gates = (struct dbg_idt_gate *)idtr.offset;
     gates[vector].flags       = 0x8E00;
-    gates[vector].segment     = dbg_get_cs();
+    gates[vector].segment     = dbg_x86_get_cs();
     gates[vector].offset_low  = (((uint32_t)function)      ) & 0xffff;
     gates[vector].offset_high = (((uint32_t)function) >> 16) & 0xffff;
 }
@@ -1471,30 +1457,30 @@ void dbg_hook_idt(uint8_t vector, const void *function)
 /*
  * Initialize IDT gates and load the new IDT.
  */
-void dbg_init_idt(void)
+void dbg_x86_init_idt(void)
 {
     struct dbg_idtr idtr;
 
-    dbg_init_gates();
+    dbg_x86_init_gates();
     idtr.len = sizeof(dbg_idt_gates)-1;
     idtr.offset = (uint32_t)dbg_idt_gates;
-    dbg_load_idt(&idtr);
+    dbg_x86_load_idt(&idtr);
 }
 
 /*
  * Common interrupt handler routine.
  */
-void dbg_int_handler(struct dbg_interrupt_state *istate)
+void dbg_x86_int_handler(struct dbg_interrupt_state *istate)
 {
-    dbg_interrupt(istate);
+    dbg_x86_interrupt(istate);
 }
 
 /*
  * Debug interrupt handler.
  */
-void dbg_interrupt(struct dbg_interrupt_state *istate)
+void dbg_x86_interrupt(struct dbg_interrupt_state *istate)
 {
-    dbg_sys_memset(&dbg_state.registers, 0, sizeof(dbg_state.registers));
+    dbg_x86_sys_memset(&dbg_state.registers, 0, sizeof(dbg_state.registers));
 
     /* Translate vector to signal */
     switch (istate->vector) {
@@ -1549,7 +1535,7 @@ void dbg_interrupt(struct dbg_interrupt_state *istate)
 /*
  * Write to I/O port.
  */
-void dbg_io_write_8(uint16_t port, uint8_t val)
+void dbg_x86_io_write_8(uint16_t port, uint8_t val)
 {
     asm volatile (
         "outb    %%al, %%dx;"
@@ -1562,7 +1548,7 @@ void dbg_io_write_8(uint16_t port, uint8_t val)
 /*
  * Read from I/O port.
  */
-uint8_t dbg_io_read_8(uint16_t port)
+uint8_t dbg_x86_io_read_8(uint16_t port)
 {
     uint8_t val;
 
@@ -1587,15 +1573,15 @@ uint8_t dbg_io_read_8(uint16_t port)
 int dbg_serial_getc(void)
 {
     /* Wait for data */
-    while ((dbg_io_read_8(SERIAL_PORT + SERIAL_LSR) & 1) == 0);
-    return dbg_io_read_8(SERIAL_PORT + SERIAL_RBR);
+    while ((dbg_x86_io_read_8(SERIAL_PORT + SERIAL_LSR) & 1) == 0);
+    return dbg_x86_io_read_8(SERIAL_PORT + SERIAL_RBR);
 }
 
 int dbg_serial_putchar(int ch)
 {
     /* Wait for THRE (bit 5) to be high */
-    while ((dbg_io_read_8(SERIAL_PORT + SERIAL_LSR) & (1<<5)) == 0);
-    dbg_io_write_8(SERIAL_PORT + SERIAL_THR, ch);
+    while ((dbg_x86_io_read_8(SERIAL_PORT + SERIAL_LSR) & (1<<5)) == 0);
+    dbg_x86_io_write_8(SERIAL_PORT + SERIAL_THR, ch);
     return ch;
 }
 
@@ -1660,11 +1646,11 @@ int dbg_sys_step(struct dbg_state *state)
  *
  * Hooks the IDT to enable debugging.
  */
-void dbg_start(void)
+void dbg_sys_init(void)
 {
     /* Hook current IDT. */
-    dbg_hook_idt(1, dbg_int_handlers[1]);
-    dbg_hook_idt(3, dbg_int_handlers[3]);
+    dbg_x86_hook_idt(1, dbg_int_handlers[1]);
+    dbg_x86_hook_idt(3, dbg_int_handlers[3]);
 
     /* Interrupt to start debugging. */
     asm volatile ("int3");
