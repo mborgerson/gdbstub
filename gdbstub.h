@@ -1356,7 +1356,6 @@ static uint32_t gdb_x86_get_cs(void);
 static void gdb_x86_interrupt(struct gdb_interrupt_state *istate);
 static void gdb_x86_io_write_8(uint16_t port, uint8_t val);
 static uint8_t gdb_x86_io_read_8(uint16_t port);
-static void *gdb_x86_sys_memset(void *ptr, int data, size_t len);
 
 #ifdef __STRICT_ANSI__
 #define asm __asm__
@@ -1378,17 +1377,6 @@ static struct gdb_state    gdb_state;
 /*****************************************************************************
  * Misc. Functions
  ****************************************************************************/
-
-static void *gdb_x86_sys_memset(void *ptr, int data, size_t len)
-{
-    char *p = ptr;
-
-    while (len--) {
-        *p++ = (char)data;
-    }
-
-    return ptr;
-}
 
 /*
  * Get current code segment (CS register).
@@ -1499,8 +1487,6 @@ void gdb_x86_int_handler(struct gdb_interrupt_state *istate)
  */
 static void gdb_x86_interrupt(struct gdb_interrupt_state *istate)
 {
-    gdb_x86_sys_memset(&gdb_state.registers, 0, sizeof(gdb_state.registers));
-
     /* Translate vector to signal */
     switch (istate->vector) {
     case 1:  gdb_state.signum = 5; break;
