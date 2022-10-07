@@ -22,41 +22,37 @@
 
 ARCH ?= mock
 
-CFLAGS       = -Werror -ansi -g -Iarch_$(ARCH) -I$(PWD)
-NASM         = nasm
-NASM_FLAGS   = -felf
+CFLAGS       = -Werror -ansi -g
 OBJCOPY      = objcopy
-OBJCOPYFLAGS = --output-target=binary
 BASE_ADDRESS = 0x500000
-TARGET       = gdbstub-$(ARCH).bin
-OBJECTS      = gdbstub.o \
-               arch_$(ARCH)/gdbstub_sys.o
-
-INCLUDE_DEMO ?= 0
+TARGET       = gdbstub.bin
+OBJECTS      = gdbstub.o
 
 ifeq ($(ARCH),mock)
-CFLAGS += -DDEFINE_MAIN -DUSE_STDIO
-TARGET = gdbstub-mock
+CFLAGS += -DDEFINE_MAIN -DUSE_STDIO -DGDBSTUB_ARCH_MOCK
+TARGET = gdbstub
 INCLUDE_DEMO = 0
-else ifeq ($(ARCH),x86)
-CFLAGS  += -Os -m32 -ffunction-sections -fno-stack-protector
-LDFLAGS += -m elf_i386 --gc-sections
-OBJECTS += arch_$(ARCH)/gdbstub_int.o
+else
+GENERATED += gdbstub.elf gdbstub.ld
+ifeq ($(ARCH),x86)
+CFLAGS  += -Os -m32 -fno-stack-protector -DGDBSTUB_ARCH_X86
+LDFLAGS += -m elf_i386
+OBJECTS += gdbstub_x86_int.o
+INCLUDE_DEMO = 1
 else
 $(error Please specify a supported architecture)
 endif
-
-ifeq ($(INCLUDE_DEMO),1)
-	OBJECTS += demo/demo.o
 endif
+
+GENERATED += $(TARGET) $(OBJECTS)
 
 all: $(TARGET)
 
-gdbstub-mock: $(OBJECTS)
+gdbstub: $(OBJECTS)
 	$(CC) -o $@ $^
 
 %.bin: %.elf
-	$(OBJCOPY) $(OBJCOPYFLAGS) $^ $@
+	$(OBJCOPY) --output-target=binary $^ $@
 
 .PRECIOUS: %.elf
 %.elf: $(OBJECTS) gdbstub.ld
@@ -72,12 +68,8 @@ gdbstub.ld: gdbstub.ld.in Makefile
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 %.o: %.nasm
-	$(NASM) -o $@ $(NASM_FLAGS) $<
+	nasm -o $@ -felf $<
 
 .PHONY: clean
 clean:
-	rm -f \
-		$(TARGET) \
-		$(TARGET:.bin=.elf) \
-		$(OBJECTS) \
-		gdbstub.ld
+	rm -f $(GENERATED)
