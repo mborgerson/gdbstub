@@ -45,24 +45,24 @@
 typedef unsigned int address;
 typedef unsigned int reg;
 
-enum DBG_REGISTER {
-    DBG_CPU_NUM_REGISTERS = 4
+enum GDB_REGISTER {
+    GDB_CPU_NUM_REGISTERS = 4
 };
 
-struct dbg_state {
+struct gdb_state {
     int signum;
-    reg registers[DBG_CPU_NUM_REGISTERS];
+    reg registers[GDB_CPU_NUM_REGISTERS];
 };
 
 /*****************************************************************************
  * Prototypes
  ****************************************************************************/
 
-struct dbg_buffer;
-extern struct dbg_buffer dbg_input, dbg_output;
+struct gdb_buffer;
+extern struct gdb_buffer gdb_input, gdb_output;
 
-void dbg_buf_write(struct dbg_buffer *buf, int ch);
-int dbg_buf_read(struct dbg_buffer *buf);
+void gdb_buf_write(struct gdb_buffer *buf, int ch);
+int gdb_buf_read(struct gdb_buffer *buf);
 
 #endif /* GDBSTUB_ARCH_MOCK */
 
@@ -74,49 +74,49 @@ int dbg_buf_read(struct dbg_buffer *buf);
 
 #ifdef GDBSTUB_ARCH_X86
 
-#define DBG_DEFINE_SIZET_TYPE 1
-#define DBG_DEFINE_STDINT_TYPES 1
+#define GDB_DEFINE_SIZET_TYPE 1
+#define GDB_DEFINE_STDINT_TYPES 1
 
 /*****************************************************************************
  * Types
  ****************************************************************************/
 
-#if DBG_DEFINE_STDINT_TYPES
+#if GDB_DEFINE_STDINT_TYPES
 typedef unsigned char  uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long  uint32_t;
 #endif
 
-#if DBG_DEFINE_SIZET_TYPE
+#if GDB_DEFINE_SIZET_TYPE
 typedef unsigned int size_t;
 #endif
 
 typedef unsigned int address;
 typedef unsigned int reg;
 
-enum DBG_REGISTER {
-    DBG_CPU_I386_REG_EAX  = 0,
-    DBG_CPU_I386_REG_ECX  = 1,
-    DBG_CPU_I386_REG_EDX  = 2,
-    DBG_CPU_I386_REG_EBX  = 3,
-    DBG_CPU_I386_REG_ESP  = 4,
-    DBG_CPU_I386_REG_EBP  = 5,
-    DBG_CPU_I386_REG_ESI  = 6,
-    DBG_CPU_I386_REG_EDI  = 7,
-    DBG_CPU_I386_REG_PC   = 8,
-    DBG_CPU_I386_REG_PS   = 9,
-    DBG_CPU_I386_REG_CS   = 10,
-    DBG_CPU_I386_REG_SS   = 11,
-    DBG_CPU_I386_REG_DS   = 12,
-    DBG_CPU_I386_REG_ES   = 13,
-    DBG_CPU_I386_REG_FS   = 14,
-    DBG_CPU_I386_REG_GS   = 15,
-    DBG_CPU_NUM_REGISTERS = 16
+enum GDB_REGISTER {
+    GDB_CPU_I386_REG_EAX  = 0,
+    GDB_CPU_I386_REG_ECX  = 1,
+    GDB_CPU_I386_REG_EDX  = 2,
+    GDB_CPU_I386_REG_EBX  = 3,
+    GDB_CPU_I386_REG_ESP  = 4,
+    GDB_CPU_I386_REG_EBP  = 5,
+    GDB_CPU_I386_REG_ESI  = 6,
+    GDB_CPU_I386_REG_EDI  = 7,
+    GDB_CPU_I386_REG_PC   = 8,
+    GDB_CPU_I386_REG_PS   = 9,
+    GDB_CPU_I386_REG_CS   = 10,
+    GDB_CPU_I386_REG_SS   = 11,
+    GDB_CPU_I386_REG_DS   = 12,
+    GDB_CPU_I386_REG_ES   = 13,
+    GDB_CPU_I386_REG_FS   = 14,
+    GDB_CPU_I386_REG_GS   = 15,
+    GDB_CPU_NUM_REGISTERS = 16
 };
 
-struct dbg_state {
+struct gdb_state {
     int signum;
-    reg registers[DBG_CPU_NUM_REGISTERS];
+    reg registers[GDB_CPU_NUM_REGISTERS];
 };
 
 #endif /* GDBSTUB_ARCH_X86 */
@@ -136,22 +136,22 @@ struct dbg_state {
 #include <stdlib.h>
 #include <assert.h>
 
-#define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__)
+#define GDB_PRINT(...) fprintf(stderr, __VA_ARGS__)
 #else
-#define DBG_PRINT(...)
+#define GDB_PRINT(...)
 #endif
 
-#ifndef DBG_EOF
-#define DBG_EOF (-1)
+#ifndef GDB_EOF
+#define GDB_EOF (-1)
 #endif
 
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
 
-#ifndef DBG_ASSERT
+#ifndef GDB_ASSERT
 #if DEBUG
-#define DBG_ASSERT(x) { \
+#define GDB_ASSERT(x) { \
 	if (!(x)) { \
 		fprintf(stderr, "ASSERTION FAILED\n"); \
 		fprintf(stderr, "  Assertion: %s\n", #x); \
@@ -161,7 +161,7 @@ struct dbg_state {
 	} \
 }
 #else
-#define DBG_ASSERT(x) \
+#define GDB_ASSERT(x) \
 	do {} while (0)
 #endif
 #endif
@@ -170,16 +170,16 @@ struct dbg_state {
  * Prototypes
  ****************************************************************************/
 
-int dbg_main(struct dbg_state *state);
+int gdb_main(struct gdb_state *state);
 
 /* System functions, supported by all stubs */
-void dbg_sys_init(void);
-int dbg_sys_getc(struct dbg_state *state);
-int dbg_sys_putchar(struct dbg_state *state, int ch);
-int dbg_sys_mem_readb(struct dbg_state *state, address addr, char *val);
-int dbg_sys_mem_writeb(struct dbg_state *state, address addr, char val);
-int dbg_sys_continue(struct dbg_state *state);
-int dbg_sys_step(struct dbg_state *state);
+void gdb_sys_init(void);
+int gdb_sys_getc(struct gdb_state *state);
+int gdb_sys_putchar(struct gdb_state *state, int ch);
+int gdb_sys_mem_readb(struct gdb_state *state, address addr, char *val);
+int gdb_sys_mem_writeb(struct gdb_state *state, address addr, char val);
+int gdb_sys_continue(struct gdb_state *state);
+int gdb_sys_step(struct gdb_state *state);
 
 #ifdef GDBSTUB_IMPLEMENTATION
 
@@ -187,9 +187,9 @@ int dbg_sys_step(struct dbg_state *state);
  * Types
  ****************************************************************************/
 
-typedef int (*dbg_enc_func)(char *buf, size_t buf_len, const char *data,
+typedef int (*gdb_enc_func)(char *buf, size_t buf_len, const char *data,
                             size_t data_len);
-typedef int (*dbg_dec_func)(const char *buf, size_t buf_len, char *data,
+typedef int (*gdb_dec_func)(const char *buf, size_t buf_len, char *data,
                             size_t data_len);
 
 /*****************************************************************************
@@ -203,45 +203,45 @@ const char digits[] = "0123456789abcdef";
  ****************************************************************************/
 
 /* Communication functions */
-int dbg_write(struct dbg_state *state, const char *buf, size_t len);
-int dbg_read(struct dbg_state *state, char *buf, size_t buf_len, size_t len);
+int gdb_write(struct gdb_state *state, const char *buf, size_t len);
+int gdb_read(struct gdb_state *state, char *buf, size_t buf_len, size_t len);
 
 /* String processing helper functions */
-int dbg_strlen(const char *ch);
-int dbg_is_printable_char(char ch);
-char dbg_get_digit(int val);
-int dbg_get_val(char digit, int base);
-int dbg_strtol(const char *str, size_t len, int base, const char **endptr);
+int gdb_strlen(const char *ch);
+int gdb_is_printable_char(char ch);
+char gdb_get_digit(int val);
+int gdb_get_val(char digit, int base);
+int gdb_strtol(const char *str, size_t len, int base, const char **endptr);
 
 /* Packet functions */
-int dbg_send_packet(struct dbg_state *state, const char *pkt, size_t pkt_len);
-int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
+int gdb_send_packet(struct gdb_state *state, const char *pkt, size_t pkt_len);
+int gdb_recv_packet(struct gdb_state *state, char *pkt_buf, size_t pkt_buf_len,
                     size_t *pkt_len);
-int dbg_checksum(const char *buf, size_t len);
-int dbg_recv_ack(struct dbg_state *state);
+int gdb_checksum(const char *buf, size_t len);
+int gdb_recv_ack(struct gdb_state *state);
 
 /* Data encoding/decoding */
-int dbg_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len);
-int dbg_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len);
-int dbg_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len);
-int dbg_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len);
+int gdb_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len);
+int gdb_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len);
+int gdb_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len);
+int gdb_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len);
 
 /* Packet creation helpers */
-int dbg_send_ok_packet(struct dbg_state *state, char *buf, size_t buf_len);
-int dbg_send_conmsg_packet(struct dbg_state *state, char *buf, size_t buf_len,
+int gdb_send_ok_packet(struct gdb_state *state, char *buf, size_t buf_len);
+int gdb_send_conmsg_packet(struct gdb_state *state, char *buf, size_t buf_len,
                            const char *msg);
-int dbg_send_signal_packet(struct dbg_state *state, char *buf, size_t buf_len,
+int gdb_send_signal_packet(struct gdb_state *state, char *buf, size_t buf_len,
                            char signal);
-int dbg_send_error_packet(struct dbg_state *state, char *buf, size_t buf_len,
+int gdb_send_error_packet(struct gdb_state *state, char *buf, size_t buf_len,
                           char error);
 
 /* Command functions */
-int dbg_mem_read(struct dbg_state *state, char *buf, size_t buf_len,
-                 address addr, size_t len, dbg_enc_func enc);
-int dbg_mem_write(struct dbg_state *state, const char *buf, size_t buf_len,
-                  address addr, size_t len, dbg_dec_func dec);
-int dbg_continue(struct dbg_state *state);
-int dbg_step(struct dbg_state *state);
+int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
+                 address addr, size_t len, gdb_enc_func enc);
+int gdb_mem_write(struct gdb_state *state, const char *buf, size_t buf_len,
+                  address addr, size_t len, gdb_dec_func dec);
+int gdb_continue(struct gdb_state *state);
+int gdb_step(struct gdb_state *state);
 
 /*****************************************************************************
  * String Processing Helper Functions
@@ -250,7 +250,7 @@ int dbg_step(struct dbg_state *state);
 /*
  * Get null-terminated string length.
  */
-int dbg_strlen(const char *ch)
+int gdb_strlen(const char *ch)
 {
     int len;
 
@@ -274,7 +274,7 @@ int dbg_strlen(const char *ch)
  * If endptr is specified, it will point to the last non-digit in the
  * string. If there are no digits in the string, it will be set to NULL.
  */
-int dbg_strtol(const char *str, size_t len, int base, const char **endptr)
+int gdb_strtol(const char *str, size_t len, int base, const char **endptr)
 {
     size_t pos;
     int sign, tmp, value, valid;
@@ -313,8 +313,8 @@ int dbg_strtol(const char *str, size_t len, int base, const char **endptr)
     }
 
     for (; (pos < len) && (str[pos] != '\x00'); pos++) {
-        tmp = dbg_get_val(str[pos], base);
-        if (tmp == DBG_EOF) {
+        tmp = gdb_get_val(str[pos], base);
+        if (tmp == GDB_EOF) {
             break;
         }
 
@@ -338,12 +338,12 @@ int dbg_strtol(const char *str, size_t len, int base, const char **endptr)
 /*
  * Get the corresponding ASCII hex digit character for a value.
  */
-char dbg_get_digit(int val)
+char gdb_get_digit(int val)
 {
     if ((val >= 0) && (val <= 0xf)) {
         return digits[val];
     } else {
-        return DBG_EOF;
+        return GDB_EOF;
     }
 }
 
@@ -352,7 +352,7 @@ char dbg_get_digit(int val)
  *
  * Supports bases 2-16.
  */
-int dbg_get_val(char digit, int base)
+int gdb_get_val(char digit, int base)
 {
     int value;
 
@@ -363,16 +363,16 @@ int dbg_get_val(char digit, int base)
     } else if ((digit >= 'A') && (digit <= 'F')) {
         value = digit-'A'+0xa;
     } else {
-        return DBG_EOF;
+        return GDB_EOF;
     }
 
-    return (value < base) ? value : DBG_EOF;
+    return (value < base) ? value : GDB_EOF;
 }
 
 /*
  * Determine if this is a printable ASCII character.
  */
-int dbg_is_printable_char(char ch)
+int gdb_is_printable_char(char ch)
 {
     return (ch >= 0x20 && ch <= 0x7e);
 }
@@ -387,14 +387,14 @@ int dbg_is_printable_char(char ch)
  * Returns:
  *    0   if an ACK (+) was received
  *    1   if a NACK (-) was received
- *    DBG_EOF otherwise
+ *    GDB_EOF otherwise
  */
-int dbg_recv_ack(struct dbg_state *state)
+int gdb_recv_ack(struct gdb_state *state)
 {
     int response;
 
     /* Wait for packet ack */
-    switch (response = dbg_sys_getc(state)) {
+    switch (response = gdb_sys_getc(state)) {
     case '+':
         /* Packet acknowledged */
         return 0;
@@ -403,8 +403,8 @@ int dbg_recv_ack(struct dbg_state *state)
         return 1;
     default:
         /* Bad response! */
-        DBG_PRINT("received bad packet response: 0x%2x\n", response);
-        return DBG_EOF;
+        GDB_PRINT("received bad packet response: 0x%2x\n", response);
+        return GDB_EOF;
     }
 }
 
@@ -414,7 +414,7 @@ int dbg_recv_ack(struct dbg_state *state)
  * Returns:
  *    8-bit checksum.
  */
-int dbg_checksum(const char *buf, size_t len)
+int gdb_checksum(const char *buf, size_t len)
 {
     unsigned char csum;
 
@@ -434,48 +434,48 @@ int dbg_checksum(const char *buf, size_t len)
  * Returns:
  *    0   if the packet was transmitted and acknowledged
  *    1   if the packet was transmitted but not acknowledged
- *    DBG_EOF otherwise
+ *    GDB_EOF otherwise
  */
-int dbg_send_packet(struct dbg_state *state, const char *pkt_data,
+int gdb_send_packet(struct gdb_state *state, const char *pkt_data,
                     size_t pkt_len)
 {
     char buf[3];
     char csum;
 
     /* Send packet start */
-    if (dbg_sys_putchar(state, '$') == DBG_EOF) {
-        return DBG_EOF;
+    if (gdb_sys_putchar(state, '$') == GDB_EOF) {
+        return GDB_EOF;
     }
 
 #if DEBUG
     {
         size_t p;
-        DBG_PRINT("-> ");
+        GDB_PRINT("-> ");
         for (p = 0; p < pkt_len; p++) {
-            if (dbg_is_printable_char(pkt_data[p])) {
-                DBG_PRINT("%c", pkt_data[p]);
+            if (gdb_is_printable_char(pkt_data[p])) {
+                GDB_PRINT("%c", pkt_data[p]);
             } else {
-                DBG_PRINT("\\x%02x", pkt_data[p]&0xff);
+                GDB_PRINT("\\x%02x", pkt_data[p]&0xff);
             }
         }
-        DBG_PRINT("\n");
+        GDB_PRINT("\n");
     }
 #endif
 
     /* Send packet data */
-    if (dbg_write(state, pkt_data, pkt_len) == DBG_EOF) {
-        return DBG_EOF;
+    if (gdb_write(state, pkt_data, pkt_len) == GDB_EOF) {
+        return GDB_EOF;
     }
 
     /* Send the checksum */
     buf[0] = '#';
-    csum = dbg_checksum(pkt_data, pkt_len);
-    if ((dbg_enc_hex(buf+1, sizeof(buf)-1, &csum, 1) == DBG_EOF) ||
-        (dbg_write(state, buf, sizeof(buf)) == DBG_EOF)) {
-        return DBG_EOF;
+    csum = gdb_checksum(pkt_data, pkt_len);
+    if ((gdb_enc_hex(buf+1, sizeof(buf)-1, &csum, 1) == GDB_EOF) ||
+        (gdb_write(state, buf, sizeof(buf)) == GDB_EOF)) {
+        return GDB_EOF;
     }
 
-    return dbg_recv_ack(state);
+    return gdb_recv_ack(state);
 }
 
 /*
@@ -483,9 +483,9 @@ int dbg_send_packet(struct dbg_state *state, const char *pkt_data,
  *
  * Returns:
  *    0   if the packet was received
- *    DBG_EOF otherwise
+ *    GDB_EOF otherwise
  */
-int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
+int gdb_recv_packet(struct gdb_state *state, char *pkt_buf, size_t pkt_buf_len,
                     size_t *pkt_len)
 {
     int data;
@@ -496,9 +496,9 @@ int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
     actual_csum = 0;
 
     while (1) {
-        data = dbg_sys_getc(state);
-        if (data == DBG_EOF) {
-            return DBG_EOF;
+        data = gdb_sys_getc(state);
+        if (data == GDB_EOF) {
+            return GDB_EOF;
         } else if (data == '$') {
             /* Detected start of packet. */
             break;
@@ -508,19 +508,19 @@ int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
     /* Read until checksum */
     *pkt_len = 0;
     while (1) {
-        data = dbg_sys_getc(state);
+        data = gdb_sys_getc(state);
 
-        if (data == DBG_EOF) {
+        if (data == GDB_EOF) {
             /* Error receiving character */
-            return DBG_EOF;
+            return GDB_EOF;
         } else if (data == '#') {
             /* End of packet */
             break;
         } else {
             /* Check for space */
             if (*pkt_len >= pkt_buf_len) {
-                DBG_PRINT("packet buffer overflow\n");
-                return DBG_EOF;
+                GDB_PRINT("packet buffer overflow\n");
+                return GDB_EOF;
             }
 
             /* Store character and update checksum */
@@ -531,35 +531,35 @@ int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
 #if DEBUG
     {
         size_t p;
-        DBG_PRINT("<- ");
+        GDB_PRINT("<- ");
         for (p = 0; p < *pkt_len; p++) {
-            if (dbg_is_printable_char(pkt_buf[p])) {
-                DBG_PRINT("%c", pkt_buf[p]);
+            if (gdb_is_printable_char(pkt_buf[p])) {
+                GDB_PRINT("%c", pkt_buf[p]);
             } else {
-                DBG_PRINT("\\x%02x", pkt_buf[p] & 0xff);
+                GDB_PRINT("\\x%02x", pkt_buf[p] & 0xff);
             }
         }
-        DBG_PRINT("\n");
+        GDB_PRINT("\n");
     }
 #endif
 
     /* Receive the checksum */
-    if ((dbg_read(state, buf, sizeof(buf), 2) == DBG_EOF) ||
-        (dbg_dec_hex(buf, 2, &expected_csum, 1) == DBG_EOF)) {
-        return DBG_EOF;
+    if ((gdb_read(state, buf, sizeof(buf), 2) == GDB_EOF) ||
+        (gdb_dec_hex(buf, 2, &expected_csum, 1) == GDB_EOF)) {
+        return GDB_EOF;
     }
 
     /* Verify checksum */
-    actual_csum = dbg_checksum(pkt_buf, *pkt_len);
+    actual_csum = gdb_checksum(pkt_buf, *pkt_len);
     if (actual_csum != expected_csum) {
         /* Send packet nack */
-        DBG_PRINT("received packet with bad checksum\n");
-        dbg_sys_putchar(state, '-');
-        return DBG_EOF;
+        GDB_PRINT("received packet with bad checksum\n");
+        gdb_sys_putchar(state, '-');
+        return GDB_EOF;
     }
 
     /* Send packet ack */
-    dbg_sys_putchar(state, '+');
+    gdb_sys_putchar(state, '+');
     return 0;
 }
 
@@ -572,20 +572,20 @@ int dbg_recv_packet(struct dbg_state *state, char *pkt_buf, size_t pkt_buf_len,
  *
  * Returns:
  *    0+  number of bytes written to buf
- *    DBG_EOF if the buffer is too small
+ *    GDB_EOF if the buffer is too small
  */
-int dbg_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len)
+int gdb_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len)
 {
     size_t pos;
 
     if (buf_len < data_len*2) {
         /* Buffer too small */
-        return DBG_EOF;
+        return GDB_EOF;
     }
 
     for (pos = 0; pos < data_len; pos++) {
-        *buf++ = dbg_get_digit((data[pos] >> 4) & 0xf);
-        *buf++ = dbg_get_digit((data[pos]     ) & 0xf);
+        *buf++ = gdb_get_digit((data[pos] >> 4) & 0xf);
+        *buf++ = gdb_get_digit((data[pos]     ) & 0xf);
     }
 
     return data_len*2;
@@ -596,35 +596,35 @@ int dbg_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len)
  *
  * Returns:
  *    0   if successful
- *    DBG_EOF if the buffer is too small
+ *    GDB_EOF if the buffer is too small
  */
-int dbg_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len)
+int gdb_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len)
 {
     size_t pos;
     int tmp;
 
     if (buf_len != data_len*2) {
         /* Buffer too small */
-        return DBG_EOF;
+        return GDB_EOF;
     }
 
     for (pos = 0; pos < data_len; pos++) {
         /* Decode high nibble */
-        tmp = dbg_get_val(*buf++, 16);
-        if (tmp == DBG_EOF) {
+        tmp = gdb_get_val(*buf++, 16);
+        if (tmp == GDB_EOF) {
             /* Buffer contained junk. */
-            DBG_ASSERT(0);
-            return DBG_EOF;
+            GDB_ASSERT(0);
+            return GDB_EOF;
         }
 
         data[pos] = tmp << 4;
 
         /* Decode low nibble */
-        tmp = dbg_get_val(*buf++, 16);
-        if (tmp == DBG_EOF) {
+        tmp = gdb_get_val(*buf++, 16);
+        if (tmp == GDB_EOF) {
             /* Buffer contained junk. */
-            DBG_ASSERT(0);
-            return DBG_EOF;
+            GDB_ASSERT(0);
+            return GDB_EOF;
         }
         data[pos] |= tmp;
     }
@@ -637,9 +637,9 @@ int dbg_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len)
  *
  * Returns:
  *    0+  number of bytes written to buf
- *    DBG_EOF if the buffer is too small
+ *    GDB_EOF if the buffer is too small
  */
-int dbg_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len)
+int gdb_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len)
 {
     size_t buf_pos, data_pos;
 
@@ -649,15 +649,15 @@ int dbg_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len)
             data[data_pos] == '}' ||
             data[data_pos] == '*') {
             if (buf_pos+1 >= buf_len) {
-                DBG_ASSERT(0);
-                return DBG_EOF;
+                GDB_ASSERT(0);
+                return GDB_EOF;
             }
             buf[buf_pos++] = '}';
             buf[buf_pos++] = data[data_pos] ^ 0x20;
         } else {
             if (buf_pos >= buf_len) {
-                DBG_ASSERT(0);
-                return DBG_EOF;
+                GDB_ASSERT(0);
+                return GDB_EOF;
             }
             buf[buf_pos++] = data[data_pos];
         }
@@ -671,25 +671,25 @@ int dbg_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len)
  *
  * Returns:
  *    0+  if successful, number of bytes decoded
- *    DBG_EOF if the buffer is too small
+ *    GDB_EOF if the buffer is too small
  */
-int dbg_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len)
+int gdb_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len)
 {
     size_t buf_pos, data_pos;
 
     for (buf_pos = 0, data_pos = 0; buf_pos < buf_len; buf_pos++) {
         if (data_pos >= data_len) {
             /* Output buffer overflow */
-            DBG_ASSERT(0);
-            return DBG_EOF;
+            GDB_ASSERT(0);
+            return GDB_EOF;
         }
         if (buf[buf_pos] == '}') {
             /* The next byte is escaped! */
             if (buf_pos+1 >= buf_len) {
                 /* There's an escape character, but no escaped character
                  * following the escape character. */
-                DBG_ASSERT(0);
-                return DBG_EOF;
+                GDB_ASSERT(0);
+                return GDB_EOF;
             }
             buf_pos += 1;
             data[data_pos++] = buf[buf_pos] ^ 0x20;
@@ -710,23 +710,23 @@ int dbg_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len)
  *
  * Returns:
  *    0+  number of bytes written to buf
- *    DBG_EOF if the buffer is too small
+ *    GDB_EOF if the buffer is too small
  */
-int dbg_mem_read(struct dbg_state *state, char *buf, size_t buf_len,
-                 address addr, size_t len, dbg_enc_func enc)
+int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
+                 address addr, size_t len, gdb_enc_func enc)
 {
     char data[64];
     size_t pos;
 
     if (len > sizeof(data)) {
-        return DBG_EOF;
+        return GDB_EOF;
     }
 
     /* Read from system memory */
     for (pos = 0; pos < len; pos++) {
-        if (dbg_sys_mem_readb(state, addr+pos, &data[pos])) {
+        if (gdb_sys_mem_readb(state, addr+pos, &data[pos])) {
             /* Failed to read */
-            return DBG_EOF;
+            return GDB_EOF;
         }
     }
 
@@ -737,26 +737,26 @@ int dbg_mem_read(struct dbg_state *state, char *buf, size_t buf_len,
 /*
  * Write to memory from encoded buf.
  */
-int dbg_mem_write(struct dbg_state *state, const char *buf, size_t buf_len,
-                  address addr, size_t len, dbg_dec_func dec)
+int gdb_mem_write(struct gdb_state *state, const char *buf, size_t buf_len,
+                  address addr, size_t len, gdb_dec_func dec)
 {
     char data[64];
     size_t pos;
 
     if (len > sizeof(data)) {
-        return DBG_EOF;
+        return GDB_EOF;
     }
 
     /* Decode data */
-    if (dec(buf, buf_len, data, len) == DBG_EOF) {
-        return DBG_EOF;
+    if (dec(buf, buf_len, data, len) == GDB_EOF) {
+        return GDB_EOF;
     }
 
     /* Write to system memory */
     for (pos = 0; pos < len; pos++) {
-        if (dbg_sys_mem_writeb(state, addr+pos, data[pos])) {
+        if (gdb_sys_mem_writeb(state, addr+pos, data[pos])) {
             /* Failed to write */
-            return DBG_EOF;
+            return GDB_EOF;
         }
     }
 
@@ -766,18 +766,18 @@ int dbg_mem_write(struct dbg_state *state, const char *buf, size_t buf_len,
 /*
  * Continue program execution at PC.
  */
-int dbg_continue(struct dbg_state *state)
+int gdb_continue(struct gdb_state *state)
 {
-    dbg_sys_continue(state);
+    gdb_sys_continue(state);
     return 0;
 }
 
 /*
  * Step one instruction.
  */
-int dbg_step(struct dbg_state *state)
+int gdb_step(struct gdb_state *state)
 {
-    dbg_sys_step(state);
+    gdb_sys_step(state);
     return 0;
 }
 
@@ -788,15 +788,15 @@ int dbg_step(struct dbg_state *state)
 /*
  * Send OK packet
  */
-int dbg_send_ok_packet(struct dbg_state *state, char *buf, size_t buf_len)
+int gdb_send_ok_packet(struct gdb_state *state, char *buf, size_t buf_len)
 {
-    return dbg_send_packet(state, "OK", 2);
+    return gdb_send_packet(state, "OK", 2);
 }
 
 /*
  * Send a message to the debugging console (via O XX... packet)
  */
-int dbg_send_conmsg_packet(struct dbg_state *state, char *buf, size_t buf_len,
+int gdb_send_conmsg_packet(struct gdb_state *state, char *buf, size_t buf_len,
                            const char *msg)
 {
     size_t size;
@@ -804,22 +804,22 @@ int dbg_send_conmsg_packet(struct dbg_state *state, char *buf, size_t buf_len,
 
     if (buf_len < 2) {
         /* Buffer too small */
-        return DBG_EOF;
+        return GDB_EOF;
     }
 
     buf[0] = 'O';
-    status = dbg_enc_hex(&buf[1], buf_len-1, msg, dbg_strlen(msg));
-    if (status == DBG_EOF) {
-        return DBG_EOF;
+    status = gdb_enc_hex(&buf[1], buf_len-1, msg, gdb_strlen(msg));
+    if (status == GDB_EOF) {
+        return GDB_EOF;
     }
     size = 1 + status;
-    return dbg_send_packet(state, buf, size);
+    return gdb_send_packet(state, buf, size);
 }
 
 /*
  * Send a signal packet (S AA).
  */
-int dbg_send_signal_packet(struct dbg_state *state, char *buf, size_t buf_len,
+int gdb_send_signal_packet(struct gdb_state *state, char *buf, size_t buf_len,
                            char signal)
 {
     size_t size;
@@ -827,22 +827,22 @@ int dbg_send_signal_packet(struct dbg_state *state, char *buf, size_t buf_len,
 
     if (buf_len < 4) {
         /* Buffer too small */
-        return DBG_EOF;
+        return GDB_EOF;
     }
 
     buf[0] = 'S';
-    status = dbg_enc_hex(&buf[1], buf_len-1, &signal, 1);
-    if (status == DBG_EOF) {
-        return DBG_EOF;
+    status = gdb_enc_hex(&buf[1], buf_len-1, &signal, 1);
+    if (status == GDB_EOF) {
+        return GDB_EOF;
     }
     size = 1 + status;
-    return dbg_send_packet(state, buf, size);
+    return gdb_send_packet(state, buf, size);
 }
 
 /*
  * Send a error packet (E AA).
  */
-int dbg_send_error_packet(struct dbg_state *state, char *buf, size_t buf_len,
+int gdb_send_error_packet(struct gdb_state *state, char *buf, size_t buf_len,
                           char error)
 {
     size_t size;
@@ -850,16 +850,16 @@ int dbg_send_error_packet(struct dbg_state *state, char *buf, size_t buf_len,
 
     if (buf_len < 4) {
         /* Buffer too small */
-        return DBG_EOF;
+        return GDB_EOF;
     }
 
     buf[0] = 'E';
-    status = dbg_enc_hex(&buf[1], buf_len-1, &error, 1);
-    if (status == DBG_EOF) {
-        return DBG_EOF;
+    status = gdb_enc_hex(&buf[1], buf_len-1, &error, 1);
+    if (status == GDB_EOF) {
+        return GDB_EOF;
     }
     size = 1 + status;
-    return dbg_send_packet(state, buf, size);
+    return gdb_send_packet(state, buf, size);
 }
 
 /*****************************************************************************
@@ -871,13 +871,13 @@ int dbg_send_error_packet(struct dbg_state *state, char *buf, size_t buf_len,
  *
  * Returns:
  *    0   if successful
- *    DBG_EOF if failed to write all bytes
+ *    GDB_EOF if failed to write all bytes
  */
-int dbg_write(struct dbg_state *state, const char *buf, size_t len)
+int gdb_write(struct gdb_state *state, const char *buf, size_t len)
 {
     while (len--) {
-        if (dbg_sys_putchar(state, *buf++) == DBG_EOF) {
-            return DBG_EOF;
+        if (gdb_sys_putchar(state, *buf++) == GDB_EOF) {
+            return GDB_EOF;
         }
     }
 
@@ -889,20 +889,20 @@ int dbg_write(struct dbg_state *state, const char *buf, size_t len)
  *
  * Returns:
  *    0   if successfully read len bytes
- *    DBG_EOF if failed to read all bytes
+ *    GDB_EOF if failed to read all bytes
  */
-int dbg_read(struct dbg_state *state, char *buf, size_t buf_len, size_t len)
+int gdb_read(struct gdb_state *state, char *buf, size_t buf_len, size_t len)
 {
     char c;
 
     if (buf_len < len) {
         /* Buffer too small */
-        return DBG_EOF;
+        return GDB_EOF;
     }
 
     while (len--) {
-        if ((c = dbg_sys_getc(state)) == DBG_EOF) {
-            return DBG_EOF;
+        if ((c = gdb_sys_getc(state)) == GDB_EOF) {
+            return GDB_EOF;
         }
         *buf++ = c;
     }
@@ -917,7 +917,7 @@ int dbg_read(struct dbg_state *state, char *buf, size_t buf_len, size_t len)
 /*
  * Main debug loop. Handles commands.
  */
-int dbg_main(struct dbg_state *state)
+int gdb_main(struct gdb_state *state)
 {
     address     addr;
     char        pkt_buf[256];
@@ -926,12 +926,12 @@ int dbg_main(struct dbg_state *state)
     size_t      pkt_len;
     const char *ptr_next;
 
-    dbg_send_signal_packet(state, pkt_buf, sizeof(pkt_buf), state->signum);
+    gdb_send_signal_packet(state, pkt_buf, sizeof(pkt_buf), state->signum);
 
     while (1) {
         /* Receive the next packet */
-        status = dbg_recv_packet(state, pkt_buf, sizeof(pkt_buf), &pkt_len);
-        if (status == DBG_EOF) {
+        status = gdb_recv_packet(state, pkt_buf, sizeof(pkt_buf), &pkt_len);
+        if (status == GDB_EOF) {
             break;
         }
 
@@ -963,7 +963,7 @@ int dbg_main(struct dbg_state *state)
         /* Expecting an integer argument. If not present, go to error */
         #define token_expect_integer_arg(arg) \
             { \
-                arg = dbg_strtol(ptr_next, token_remaining_buf, \
+                arg = gdb_strtol(ptr_next, token_remaining_buf, \
                                  16, &ptr_next); \
                 if (!ptr_next) { \
                     goto error; \
@@ -976,14 +976,14 @@ int dbg_main(struct dbg_state *state)
          */
         case 'g':
             /* Encode registers */
-            status = dbg_enc_hex(pkt_buf, sizeof(pkt_buf),
+            status = gdb_enc_hex(pkt_buf, sizeof(pkt_buf),
                                  (char *)&(state->registers),
                                  sizeof(state->registers));
-            if (status == DBG_EOF) {
+            if (status == GDB_EOF) {
                 goto error;
             }
             pkt_len = status;
-            dbg_send_packet(state, pkt_buf, pkt_len);
+            gdb_send_packet(state, pkt_buf, pkt_len);
             break;
 
         /*
@@ -991,13 +991,13 @@ int dbg_main(struct dbg_state *state)
          * Command Format: G XX...
          */
         case 'G':
-            status = dbg_dec_hex(pkt_buf+1, pkt_len-1,
+            status = gdb_dec_hex(pkt_buf+1, pkt_len-1,
                                  (char *)&(state->registers),
                                  sizeof(state->registers));
-            if (status == DBG_EOF) {
+            if (status == GDB_EOF) {
                 goto error;
             }
-            dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
+            gdb_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
             break;
 
         /*
@@ -1008,18 +1008,18 @@ int dbg_main(struct dbg_state *state)
             ptr_next += 1;
             token_expect_integer_arg(addr);
 
-            if (addr >= DBG_CPU_NUM_REGISTERS) {
+            if (addr >= GDB_CPU_NUM_REGISTERS) {
                 goto error;
             }
 
             /* Read Register */
-            status = dbg_enc_hex(pkt_buf, sizeof(pkt_buf),
+            status = gdb_enc_hex(pkt_buf, sizeof(pkt_buf),
                                  (char *)&(state->registers[addr]),
                                  sizeof(state->registers[addr]));
-            if (status == DBG_EOF) {
+            if (status == GDB_EOF) {
                 goto error;
             }
-            dbg_send_packet(state, pkt_buf, status);
+            gdb_send_packet(state, pkt_buf, status);
             break;
 
         /*
@@ -1031,15 +1031,15 @@ int dbg_main(struct dbg_state *state)
             token_expect_integer_arg(addr);
             token_expect_seperator('=');
 
-            if (addr < DBG_CPU_NUM_REGISTERS) {
-                status = dbg_dec_hex(ptr_next, token_remaining_buf,
+            if (addr < GDB_CPU_NUM_REGISTERS) {
+                status = gdb_dec_hex(ptr_next, token_remaining_buf,
                                      (char *)&(state->registers[addr]),
                                      sizeof(state->registers[addr]));
-                if (status == DBG_EOF) {
+                if (status == GDB_EOF) {
                     goto error;
                 }
             }
-            dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
+            gdb_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
             break;
 
         /*
@@ -1053,12 +1053,12 @@ int dbg_main(struct dbg_state *state)
             token_expect_integer_arg(length);
 
             /* Read Memory */
-            status = dbg_mem_read(state, pkt_buf, sizeof(pkt_buf),
-                                  addr, length, dbg_enc_hex);
-            if (status == DBG_EOF) {
+            status = gdb_mem_read(state, pkt_buf, sizeof(pkt_buf),
+                                  addr, length, gdb_enc_hex);
+            if (status == GDB_EOF) {
                 goto error;
             }
-            dbg_send_packet(state, pkt_buf, status);
+            gdb_send_packet(state, pkt_buf, status);
             break;
 
         /*
@@ -1073,12 +1073,12 @@ int dbg_main(struct dbg_state *state)
             token_expect_seperator(':');
 
             /* Write Memory */
-            status = dbg_mem_write(state, ptr_next, token_remaining_buf,
-                                   addr, length, dbg_dec_hex);
-            if (status == DBG_EOF) {
+            status = gdb_mem_write(state, ptr_next, token_remaining_buf,
+                                   addr, length, gdb_dec_hex);
+            if (status == GDB_EOF) {
                 goto error;
             }
-            dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
+            gdb_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
             break;
 
         /*
@@ -1093,12 +1093,12 @@ int dbg_main(struct dbg_state *state)
             token_expect_seperator(':');
 
             /* Write Memory */
-            status = dbg_mem_write(state, ptr_next, token_remaining_buf,
-                                   addr, length, dbg_dec_bin);
-            if (status == DBG_EOF) {
+            status = gdb_mem_write(state, ptr_next, token_remaining_buf,
+                                   addr, length, gdb_dec_bin);
+            if (status == GDB_EOF) {
                 goto error;
             }
-            dbg_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
+            gdb_send_ok_packet(state, pkt_buf, sizeof(pkt_buf));
             break;
 
         /*
@@ -1106,7 +1106,7 @@ int dbg_main(struct dbg_state *state)
          * Command Format: c [addr]
          */
         case 'c':
-            dbg_continue(state);
+            gdb_continue(state);
             return 0;
 
         /*
@@ -1114,11 +1114,11 @@ int dbg_main(struct dbg_state *state)
          * Command Format: s [addr]
          */
         case 's':
-            dbg_step(state);
+            gdb_step(state);
             return 0;
 
         case '?':
-            dbg_send_signal_packet(state, pkt_buf, sizeof(pkt_buf),
+            gdb_send_signal_packet(state, pkt_buf, sizeof(pkt_buf),
                                    state->signum);
             break;
 
@@ -1126,13 +1126,13 @@ int dbg_main(struct dbg_state *state)
          * Unsupported Command
          */
         default:
-            dbg_send_packet(state, NULL, 0);
+            gdb_send_packet(state, NULL, 0);
         }
 
         continue;
 
     error:
-        dbg_send_error_packet(state, pkt_buf, sizeof(pkt_buf), 0x00);
+        gdb_send_error_packet(state, pkt_buf, sizeof(pkt_buf), 0x00);
 
         #undef token_remaining_buf
         #undef token_expect_seperator
@@ -1157,16 +1157,16 @@ int dbg_main(struct dbg_state *state)
 
 #include "gdbstub.h"
 
-static char dbg_mem[256];
+static char gdb_mem[256];
 
-struct dbg_buffer {
+struct gdb_buffer {
     char   *buf;
     size_t  pos_write;
     size_t  pos_read;
     size_t  size;
-} dbg_input, dbg_output;
+} gdb_input, gdb_output;
 
-void dbg_buf_write(struct dbg_buffer *buf, int ch)
+void gdb_buf_write(struct gdb_buffer *buf, int ch)
 {
     if (buf->buf == NULL) {
         buf->pos_write = 0;
@@ -1182,7 +1182,7 @@ void dbg_buf_write(struct dbg_buffer *buf, int ch)
     buf->buf[buf->pos_write++] = ch;
 }
 
-int dbg_buf_read(struct dbg_buffer *buf)
+int gdb_buf_read(struct gdb_buffer *buf)
 {
     if (buf->buf && buf->pos_read < buf->pos_write) {
         return buf->buf[buf->pos_read++];
@@ -1197,12 +1197,12 @@ int dbg_buf_read(struct dbg_buffer *buf)
 /*
  * Write one character to the debugging stream.
  */
-int dbg_sys_putchar(struct dbg_state *state, int ch)
+int gdb_sys_putchar(struct gdb_state *state, int ch)
 {
 #ifdef USE_STDIO
     putchar(ch);
 #else
-    dbg_buf_write(&dbg_output, ch);
+    gdb_buf_write(&gdb_output, ch);
 #endif
     return 0;
 }
@@ -1210,46 +1210,46 @@ int dbg_sys_putchar(struct dbg_state *state, int ch)
 /*
  * Read one character from the debugging stream.
  */
-int dbg_sys_getc(struct dbg_state *state)
+int gdb_sys_getc(struct gdb_state *state)
 {
 #ifdef USE_STDIO
     int ch = getchar();
-    return ch == EOF ? DBG_EOF : ch;
+    return ch == EOF ? GDB_EOF : ch;
 #else
-    return dbg_buf_read(&dbg_input);
+    return gdb_buf_read(&gdb_input);
 #endif
 }
 
 /*
  * Read one byte from memory.
  */
-int dbg_sys_mem_readb(struct dbg_state *state, address addr, char *val)
+int gdb_sys_mem_readb(struct gdb_state *state, address addr, char *val)
 {
-    if (addr >= sizeof(dbg_mem)) {
+    if (addr >= sizeof(gdb_mem)) {
         return 1;
     }
 
-    *val = dbg_mem[addr];
+    *val = gdb_mem[addr];
     return 0;
 }
 
 /*
  * Write one byte to memory.
  */
-int dbg_sys_mem_writeb(struct dbg_state *state, address addr, char val)
+int gdb_sys_mem_writeb(struct gdb_state *state, address addr, char val)
 {
-    if (addr >= sizeof(dbg_mem)) {
+    if (addr >= sizeof(gdb_mem)) {
         return 1;
     }
 
-    dbg_mem[addr] = val;
+    gdb_mem[addr] = val;
     return 0;
 }
 
 /*
  * Continue program execution.
  */
-int dbg_sys_continue(struct dbg_state *state)
+int gdb_sys_continue(struct gdb_state *state)
 {
     return 0;
 }
@@ -1257,7 +1257,7 @@ int dbg_sys_continue(struct dbg_state *state)
 /*
  * Single step the next instruction.
  */
-int dbg_sys_step(struct dbg_state *state)
+int gdb_sys_step(struct gdb_state *state)
 {
     return 0;
 }
@@ -1278,7 +1278,7 @@ int dbg_sys_step(struct dbg_state *state)
  ****************************************************************************/
 
 #pragma pack(1)
-struct dbg_interrupt_state {
+struct gdb_interrupt_state {
     uint32_t ss;
     uint32_t gs;
     uint32_t fs;
@@ -1301,7 +1301,7 @@ struct dbg_interrupt_state {
 #pragma pack()
 
 #pragma pack(1)
-struct dbg_idtr
+struct gdb_idtr
 {
     uint16_t len;
     uint32_t offset;
@@ -1309,7 +1309,7 @@ struct dbg_idtr
 #pragma pack()
 
 #pragma pack(1)
-struct dbg_idt_gate
+struct gdb_idt_gate
 {
     uint16_t offset_low;
     uint16_t segment;
@@ -1322,23 +1322,23 @@ struct dbg_idt_gate
  * Const Data
  ****************************************************************************/
 
-extern void const * const dbg_int_handlers[];
+extern void const * const gdb_int_handlers[];
 
 /*****************************************************************************
  * Prototypes
  ****************************************************************************/
 
-void dbg_x86_hook_idt(uint8_t vector, const void *function);
-void dbg_x86_init_gates(void);
-void dbg_x86_init_idt(void);
-void dbg_x86_load_idt(struct dbg_idtr *idtr);
-void dbg_x86_store_idt(struct dbg_idtr *idtr);
-uint32_t dbg_x86_get_cs(void);
-void dbg_x86_int_handler(struct dbg_interrupt_state *istate);
-void dbg_x86_interrupt(struct dbg_interrupt_state *istate);
-void dbg_x86_io_write_8(uint16_t port, uint8_t val);
-uint8_t dbg_x86_io_read_8(uint16_t port);
-void *dbg_x86_sys_memset(void *ptr, int data, size_t len);
+void gdb_x86_hook_idt(uint8_t vector, const void *function);
+void gdb_x86_init_gates(void);
+void gdb_x86_init_idt(void);
+void gdb_x86_load_idt(struct gdb_idtr *idtr);
+void gdb_x86_store_idt(struct gdb_idtr *idtr);
+uint32_t gdb_x86_get_cs(void);
+void gdb_x86_int_handler(struct gdb_interrupt_state *istate);
+void gdb_x86_interrupt(struct gdb_interrupt_state *istate);
+void gdb_x86_io_write_8(uint16_t port, uint8_t val);
+uint8_t gdb_x86_io_read_8(uint16_t port);
+void *gdb_x86_sys_memset(void *ptr, int data, size_t len);
 
 #ifdef __STRICT_ANSI__
 #define asm __asm__
@@ -1354,14 +1354,14 @@ void *dbg_x86_sys_memset(void *ptr, int data, size_t len);
  * BSS Data
  ****************************************************************************/
 
-static struct dbg_idt_gate dbg_idt_gates[NUM_IDT_ENTRIES];
-static struct dbg_state    dbg_state;
+static struct gdb_idt_gate gdb_idt_gates[NUM_IDT_ENTRIES];
+static struct gdb_state    gdb_state;
 
 /*****************************************************************************
  * Misc. Functions
  ****************************************************************************/
 
-void *dbg_x86_sys_memset(void *ptr, int data, size_t len)
+void *gdb_x86_sys_memset(void *ptr, int data, size_t len)
 {
     char *p = ptr;
 
@@ -1375,7 +1375,7 @@ void *dbg_x86_sys_memset(void *ptr, int data, size_t len)
 /*
  * Get current code segment (CS register).
  */
-uint32_t dbg_x86_get_cs(void)
+uint32_t gdb_x86_get_cs(void)
 {
     uint32_t cs;
 
@@ -1397,26 +1397,26 @@ uint32_t dbg_x86_get_cs(void)
 /*
  * Initialize idt_gates with the interrupt handlers.
  */
-void dbg_x86_init_gates(void)
+void gdb_x86_init_gates(void)
 {
     size_t   i;
     uint16_t cs;
 
-    cs = dbg_x86_get_cs();
+    cs = gdb_x86_get_cs();
     for (i = 0; i < NUM_IDT_ENTRIES; i++) {
-        dbg_idt_gates[i].flags       = 0x8E00;
-        dbg_idt_gates[i].segment     = cs;
-        dbg_idt_gates[i].offset_low  =
-            ((uint32_t)dbg_int_handlers[i]      ) & 0xffff;
-        dbg_idt_gates[i].offset_high =
-            ((uint32_t)dbg_int_handlers[i] >> 16) & 0xffff;
+        gdb_idt_gates[i].flags       = 0x8E00;
+        gdb_idt_gates[i].segment     = cs;
+        gdb_idt_gates[i].offset_low  =
+            ((uint32_t)gdb_int_handlers[i]      ) & 0xffff;
+        gdb_idt_gates[i].offset_high =
+            ((uint32_t)gdb_int_handlers[i] >> 16) & 0xffff;
     }
 }
 
 /*
  * Load a new IDT.
  */
-void dbg_x86_load_idt(struct dbg_idtr *idtr)
+void gdb_x86_load_idt(struct gdb_idtr *idtr)
 {
     asm volatile (
         "lidt    %0"
@@ -1429,7 +1429,7 @@ void dbg_x86_load_idt(struct dbg_idtr *idtr)
 /*
  * Get current IDT.
  */
-void dbg_x86_store_idt(struct dbg_idtr *idtr)
+void gdb_x86_store_idt(struct gdb_idtr *idtr)
 {
     asm volatile (
         "sidt    %0"
@@ -1442,15 +1442,15 @@ void dbg_x86_store_idt(struct dbg_idtr *idtr)
 /*
  * Hook a vector of the current IDT.
  */
-void dbg_x86_hook_idt(uint8_t vector, const void *function)
+void gdb_x86_hook_idt(uint8_t vector, const void *function)
 {
-    struct dbg_idtr      idtr;
-    struct dbg_idt_gate *gates;
+    struct gdb_idtr      idtr;
+    struct gdb_idt_gate *gates;
 
-    dbg_x86_store_idt(&idtr);
-    gates = (struct dbg_idt_gate *)idtr.offset;
+    gdb_x86_store_idt(&idtr);
+    gates = (struct gdb_idt_gate *)idtr.offset;
     gates[vector].flags       = 0x8E00;
-    gates[vector].segment     = dbg_x86_get_cs();
+    gates[vector].segment     = gdb_x86_get_cs();
     gates[vector].offset_low  = (((uint32_t)function)      ) & 0xffff;
     gates[vector].offset_high = (((uint32_t)function) >> 16) & 0xffff;
 }
@@ -1458,75 +1458,75 @@ void dbg_x86_hook_idt(uint8_t vector, const void *function)
 /*
  * Initialize IDT gates and load the new IDT.
  */
-void dbg_x86_init_idt(void)
+void gdb_x86_init_idt(void)
 {
-    struct dbg_idtr idtr;
+    struct gdb_idtr idtr;
 
-    dbg_x86_init_gates();
-    idtr.len = sizeof(dbg_idt_gates)-1;
-    idtr.offset = (uint32_t)dbg_idt_gates;
-    dbg_x86_load_idt(&idtr);
+    gdb_x86_init_gates();
+    idtr.len = sizeof(gdb_idt_gates)-1;
+    idtr.offset = (uint32_t)gdb_idt_gates;
+    gdb_x86_load_idt(&idtr);
 }
 
 /*
  * Common interrupt handler routine.
  */
-void dbg_x86_int_handler(struct dbg_interrupt_state *istate)
+void gdb_x86_int_handler(struct gdb_interrupt_state *istate)
 {
-    dbg_x86_interrupt(istate);
+    gdb_x86_interrupt(istate);
 }
 
 /*
  * Debug interrupt handler.
  */
-void dbg_x86_interrupt(struct dbg_interrupt_state *istate)
+void gdb_x86_interrupt(struct gdb_interrupt_state *istate)
 {
-    dbg_x86_sys_memset(&dbg_state.registers, 0, sizeof(dbg_state.registers));
+    gdb_x86_sys_memset(&gdb_state.registers, 0, sizeof(gdb_state.registers));
 
     /* Translate vector to signal */
     switch (istate->vector) {
-    case 1:  dbg_state.signum = 5; break;
-    case 3:  dbg_state.signum = 5; break;
-    default: dbg_state.signum = 7;
+    case 1:  gdb_state.signum = 5; break;
+    case 3:  gdb_state.signum = 5; break;
+    default: gdb_state.signum = 7;
     }
 
     /* Load Registers */
-    dbg_state.registers[DBG_CPU_I386_REG_EAX] = istate->eax;
-    dbg_state.registers[DBG_CPU_I386_REG_ECX] = istate->ecx;
-    dbg_state.registers[DBG_CPU_I386_REG_EDX] = istate->edx;
-    dbg_state.registers[DBG_CPU_I386_REG_EBX] = istate->ebx;
-    dbg_state.registers[DBG_CPU_I386_REG_ESP] = istate->esp;
-    dbg_state.registers[DBG_CPU_I386_REG_EBP] = istate->ebp;
-    dbg_state.registers[DBG_CPU_I386_REG_ESI] = istate->esi;
-    dbg_state.registers[DBG_CPU_I386_REG_EDI] = istate->edi;
-    dbg_state.registers[DBG_CPU_I386_REG_PC]  = istate->eip;
-    dbg_state.registers[DBG_CPU_I386_REG_CS]  = istate->cs;
-    dbg_state.registers[DBG_CPU_I386_REG_PS]  = istate->eflags;
-    dbg_state.registers[DBG_CPU_I386_REG_SS]  = istate->ss;
-    dbg_state.registers[DBG_CPU_I386_REG_DS]  = istate->ds;
-    dbg_state.registers[DBG_CPU_I386_REG_ES]  = istate->es;
-    dbg_state.registers[DBG_CPU_I386_REG_FS]  = istate->fs;
-    dbg_state.registers[DBG_CPU_I386_REG_GS]  = istate->gs;
+    gdb_state.registers[GDB_CPU_I386_REG_EAX] = istate->eax;
+    gdb_state.registers[GDB_CPU_I386_REG_ECX] = istate->ecx;
+    gdb_state.registers[GDB_CPU_I386_REG_EDX] = istate->edx;
+    gdb_state.registers[GDB_CPU_I386_REG_EBX] = istate->ebx;
+    gdb_state.registers[GDB_CPU_I386_REG_ESP] = istate->esp;
+    gdb_state.registers[GDB_CPU_I386_REG_EBP] = istate->ebp;
+    gdb_state.registers[GDB_CPU_I386_REG_ESI] = istate->esi;
+    gdb_state.registers[GDB_CPU_I386_REG_EDI] = istate->edi;
+    gdb_state.registers[GDB_CPU_I386_REG_PC]  = istate->eip;
+    gdb_state.registers[GDB_CPU_I386_REG_CS]  = istate->cs;
+    gdb_state.registers[GDB_CPU_I386_REG_PS]  = istate->eflags;
+    gdb_state.registers[GDB_CPU_I386_REG_SS]  = istate->ss;
+    gdb_state.registers[GDB_CPU_I386_REG_DS]  = istate->ds;
+    gdb_state.registers[GDB_CPU_I386_REG_ES]  = istate->es;
+    gdb_state.registers[GDB_CPU_I386_REG_FS]  = istate->fs;
+    gdb_state.registers[GDB_CPU_I386_REG_GS]  = istate->gs;
 
-    dbg_main(&dbg_state);
+    gdb_main(&gdb_state);
 
     /* Restore Registers */
-    istate->eax    = dbg_state.registers[DBG_CPU_I386_REG_EAX];
-    istate->ecx    = dbg_state.registers[DBG_CPU_I386_REG_ECX];
-    istate->edx    = dbg_state.registers[DBG_CPU_I386_REG_EDX];
-    istate->ebx    = dbg_state.registers[DBG_CPU_I386_REG_EBX];
-    istate->esp    = dbg_state.registers[DBG_CPU_I386_REG_ESP];
-    istate->ebp    = dbg_state.registers[DBG_CPU_I386_REG_EBP];
-    istate->esi    = dbg_state.registers[DBG_CPU_I386_REG_ESI];
-    istate->edi    = dbg_state.registers[DBG_CPU_I386_REG_EDI];
-    istate->eip    = dbg_state.registers[DBG_CPU_I386_REG_PC];
-    istate->cs     = dbg_state.registers[DBG_CPU_I386_REG_CS];
-    istate->eflags = dbg_state.registers[DBG_CPU_I386_REG_PS];
-    istate->ss     = dbg_state.registers[DBG_CPU_I386_REG_SS];
-    istate->ds     = dbg_state.registers[DBG_CPU_I386_REG_DS];
-    istate->es     = dbg_state.registers[DBG_CPU_I386_REG_ES];
-    istate->fs     = dbg_state.registers[DBG_CPU_I386_REG_FS];
-    istate->gs     = dbg_state.registers[DBG_CPU_I386_REG_GS];
+    istate->eax    = gdb_state.registers[GDB_CPU_I386_REG_EAX];
+    istate->ecx    = gdb_state.registers[GDB_CPU_I386_REG_ECX];
+    istate->edx    = gdb_state.registers[GDB_CPU_I386_REG_EDX];
+    istate->ebx    = gdb_state.registers[GDB_CPU_I386_REG_EBX];
+    istate->esp    = gdb_state.registers[GDB_CPU_I386_REG_ESP];
+    istate->ebp    = gdb_state.registers[GDB_CPU_I386_REG_EBP];
+    istate->esi    = gdb_state.registers[GDB_CPU_I386_REG_ESI];
+    istate->edi    = gdb_state.registers[GDB_CPU_I386_REG_EDI];
+    istate->eip    = gdb_state.registers[GDB_CPU_I386_REG_PC];
+    istate->cs     = gdb_state.registers[GDB_CPU_I386_REG_CS];
+    istate->eflags = gdb_state.registers[GDB_CPU_I386_REG_PS];
+    istate->ss     = gdb_state.registers[GDB_CPU_I386_REG_SS];
+    istate->ds     = gdb_state.registers[GDB_CPU_I386_REG_DS];
+    istate->es     = gdb_state.registers[GDB_CPU_I386_REG_ES];
+    istate->fs     = gdb_state.registers[GDB_CPU_I386_REG_FS];
+    istate->gs     = gdb_state.registers[GDB_CPU_I386_REG_GS];
 }
 
 /*****************************************************************************
@@ -1536,7 +1536,7 @@ void dbg_x86_interrupt(struct dbg_interrupt_state *istate)
 /*
  * Write to I/O port.
  */
-void dbg_x86_io_write_8(uint16_t port, uint8_t val)
+void gdb_x86_io_write_8(uint16_t port, uint8_t val)
 {
     asm volatile (
         "outb    %%al, %%dx;"
@@ -1549,7 +1549,7 @@ void dbg_x86_io_write_8(uint16_t port, uint8_t val)
 /*
  * Read from I/O port.
  */
-uint8_t dbg_x86_io_read_8(uint16_t port)
+uint8_t gdb_x86_io_read_8(uint16_t port)
 {
     uint8_t val;
 
@@ -1571,18 +1571,18 @@ uint8_t dbg_x86_io_read_8(uint16_t port)
 #define SERIAL_RBR 0
 #define SERIAL_LSR 5
 
-int dbg_serial_getc(void)
+int gdb_serial_getc(void)
 {
     /* Wait for data */
-    while ((dbg_x86_io_read_8(SERIAL_PORT + SERIAL_LSR) & 1) == 0);
-    return dbg_x86_io_read_8(SERIAL_PORT + SERIAL_RBR);
+    while ((gdb_x86_io_read_8(SERIAL_PORT + SERIAL_LSR) & 1) == 0);
+    return gdb_x86_io_read_8(SERIAL_PORT + SERIAL_RBR);
 }
 
-int dbg_serial_putchar(int ch)
+int gdb_serial_putchar(int ch)
 {
     /* Wait for THRE (bit 5) to be high */
-    while ((dbg_x86_io_read_8(SERIAL_PORT + SERIAL_LSR) & (1<<5)) == 0);
-    dbg_x86_io_write_8(SERIAL_PORT + SERIAL_THR, ch);
+    while ((gdb_x86_io_read_8(SERIAL_PORT + SERIAL_LSR) & (1<<5)) == 0);
+    gdb_x86_io_write_8(SERIAL_PORT + SERIAL_THR, ch);
     return ch;
 }
 
@@ -1593,23 +1593,23 @@ int dbg_serial_putchar(int ch)
 /*
  * Write one character to the debugging stream.
  */
-int dbg_sys_putchar(struct dbg_state *state, int ch)
+int gdb_sys_putchar(struct gdb_state *state, int ch)
 {
-    return dbg_serial_putchar(ch);
+    return gdb_serial_putchar(ch);
 }
 
 /*
  * Read one character from the debugging stream.
  */
-int dbg_sys_getc(struct dbg_state *state)
+int gdb_sys_getc(struct gdb_state *state)
 {
-    return dbg_serial_getc() & 0xff;
+    return gdb_serial_getc() & 0xff;
 }
 
 /*
  * Read one byte from memory.
  */
-int dbg_sys_mem_readb(struct dbg_state *state, address addr, char *val)
+int gdb_sys_mem_readb(struct gdb_state *state, address addr, char *val)
 {
     *val = *(volatile char *)addr;
     return 0;
@@ -1618,7 +1618,7 @@ int dbg_sys_mem_readb(struct dbg_state *state, address addr, char *val)
 /*
  * Write one byte to memory.
  */
-int dbg_sys_mem_writeb(struct dbg_state *state, address addr, char val)
+int gdb_sys_mem_writeb(struct gdb_state *state, address addr, char val)
 {
     *(volatile char *)addr = val;
     return 0;
@@ -1627,18 +1627,18 @@ int dbg_sys_mem_writeb(struct dbg_state *state, address addr, char val)
 /*
  * Continue program execution.
  */
-int dbg_sys_continue(struct dbg_state *state)
+int gdb_sys_continue(struct gdb_state *state)
 {
-    dbg_state.registers[DBG_CPU_I386_REG_PS] &= ~(1<<8);
+    gdb_state.registers[GDB_CPU_I386_REG_PS] &= ~(1<<8);
     return 0;
 }
 
 /*
  * Single step the next instruction.
  */
-int dbg_sys_step(struct dbg_state *state)
+int gdb_sys_step(struct gdb_state *state)
 {
-    dbg_state.registers[DBG_CPU_I386_REG_PS] |= 1<<8;
+    gdb_state.registers[GDB_CPU_I386_REG_PS] |= 1<<8;
     return 0;
 }
 
@@ -1647,11 +1647,11 @@ int dbg_sys_step(struct dbg_state *state)
  *
  * Hooks the IDT to enable debugging.
  */
-void dbg_sys_init(void)
+void gdb_sys_init(void)
 {
     /* Hook current IDT. */
-    dbg_x86_hook_idt(1, dbg_int_handlers[1]);
-    dbg_x86_hook_idt(3, dbg_int_handlers[3]);
+    gdb_x86_hook_idt(1, gdb_int_handlers[1]);
+    gdb_x86_hook_idt(3, gdb_int_handlers[3]);
 
     /* Interrupt to start debugging. */
     asm volatile ("int3");
