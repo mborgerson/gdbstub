@@ -203,45 +203,54 @@ static const char digits[] = "0123456789abcdef";
  ****************************************************************************/
 
 /* Communication functions */
-int gdb_write(struct gdb_state *state, const char *buf, size_t len);
-int gdb_read(struct gdb_state *state, char *buf, size_t buf_len, size_t len);
+static int gdb_write(struct gdb_state *state, const char *buf, size_t len);
+static int gdb_read(struct gdb_state *state, char *buf, size_t buf_len,
+                    size_t len);
 
 /* String processing helper functions */
-int gdb_strlen(const char *ch);
-int gdb_is_printable_char(char ch);
-char gdb_get_digit(int val);
-int gdb_get_val(char digit, int base);
-int gdb_strtol(const char *str, size_t len, int base, const char **endptr);
+static int gdb_strlen(const char *ch);
+static int gdb_is_printable_char(char ch);
+static char gdb_get_digit(int val);
+static int gdb_get_val(char digit, int base);
+static int gdb_strtol(const char *str, size_t len, int base,
+                      const char **endptr);
 
 /* Packet functions */
-int gdb_send_packet(struct gdb_state *state, const char *pkt, size_t pkt_len);
-int gdb_recv_packet(struct gdb_state *state, char *pkt_buf, size_t pkt_buf_len,
-                    size_t *pkt_len);
-int gdb_checksum(const char *buf, size_t len);
-int gdb_recv_ack(struct gdb_state *state);
+static int gdb_send_packet(struct gdb_state *state, const char *pkt,
+                           size_t pkt_len);
+static int gdb_recv_packet(struct gdb_state *state, char *pkt_buf,
+                           size_t pkt_buf_len, size_t *pkt_len);
+static int gdb_checksum(const char *buf, size_t len);
+static int gdb_recv_ack(struct gdb_state *state);
 
 /* Data encoding/decoding */
-int gdb_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len);
-int gdb_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len);
-int gdb_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len);
-int gdb_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len);
+static int gdb_enc_hex(char *buf, size_t buf_len, const char *data,
+                       size_t data_len);
+static int gdb_dec_hex(const char *buf, size_t buf_len, char *data,
+                       size_t data_len);
+static int gdb_enc_bin(char *buf, size_t buf_len, const char *data,
+                       size_t data_len);
+static int gdb_dec_bin(const char *buf, size_t buf_len, char *data,
+                       size_t data_len);
 
 /* Packet creation helpers */
-int gdb_send_ok_packet(struct gdb_state *state, char *buf, size_t buf_len);
-int gdb_send_conmsg_packet(struct gdb_state *state, char *buf, size_t buf_len,
-                           const char *msg);
-int gdb_send_signal_packet(struct gdb_state *state, char *buf, size_t buf_len,
-                           char signal);
-int gdb_send_error_packet(struct gdb_state *state, char *buf, size_t buf_len,
-                          char error);
+static int gdb_send_ok_packet(struct gdb_state *state, char *buf,
+                              size_t buf_len);
+static int gdb_send_conmsg_packet(struct gdb_state *state, char *buf,
+                                  size_t buf_len, const char *msg);
+static int gdb_send_signal_packet(struct gdb_state *state, char *buf,
+                                  size_t buf_len, char signal);
+static int gdb_send_error_packet(struct gdb_state *state, char *buf,
+                                 size_t buf_len, char error);
 
 /* Command functions */
-int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
-                 address addr, size_t len, gdb_enc_func enc);
-int gdb_mem_write(struct gdb_state *state, const char *buf, size_t buf_len,
-                  address addr, size_t len, gdb_dec_func dec);
-int gdb_continue(struct gdb_state *state);
-int gdb_step(struct gdb_state *state);
+static int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
+                        address addr, size_t len, gdb_enc_func enc);
+static int gdb_mem_write(struct gdb_state *state, const char *buf,
+                         size_t buf_len, address addr, size_t len,
+                         gdb_dec_func dec);
+static int gdb_continue(struct gdb_state *state);
+static int gdb_step(struct gdb_state *state);
 
 /*****************************************************************************
  * String Processing Helper Functions
@@ -250,7 +259,7 @@ int gdb_step(struct gdb_state *state);
 /*
  * Get null-terminated string length.
  */
-int gdb_strlen(const char *ch)
+static int gdb_strlen(const char *ch)
 {
     int len;
 
@@ -274,7 +283,8 @@ int gdb_strlen(const char *ch)
  * If endptr is specified, it will point to the last non-digit in the
  * string. If there are no digits in the string, it will be set to NULL.
  */
-int gdb_strtol(const char *str, size_t len, int base, const char **endptr)
+static int gdb_strtol(const char *str, size_t len, int base,
+                      const char **endptr)
 {
     size_t pos;
     int sign, tmp, value, valid;
@@ -338,7 +348,7 @@ int gdb_strtol(const char *str, size_t len, int base, const char **endptr)
 /*
  * Get the corresponding ASCII hex digit character for a value.
  */
-char gdb_get_digit(int val)
+static char gdb_get_digit(int val)
 {
     if ((val >= 0) && (val <= 0xf)) {
         return digits[val];
@@ -352,7 +362,7 @@ char gdb_get_digit(int val)
  *
  * Supports bases 2-16.
  */
-int gdb_get_val(char digit, int base)
+static int gdb_get_val(char digit, int base)
 {
     int value;
 
@@ -372,7 +382,7 @@ int gdb_get_val(char digit, int base)
 /*
  * Determine if this is a printable ASCII character.
  */
-int gdb_is_printable_char(char ch)
+static int gdb_is_printable_char(char ch)
 {
     return (ch >= 0x20 && ch <= 0x7e);
 }
@@ -389,7 +399,7 @@ int gdb_is_printable_char(char ch)
  *    1   if a NACK (-) was received
  *    GDB_EOF otherwise
  */
-int gdb_recv_ack(struct gdb_state *state)
+static int gdb_recv_ack(struct gdb_state *state)
 {
     int response;
 
@@ -414,7 +424,7 @@ int gdb_recv_ack(struct gdb_state *state)
  * Returns:
  *    8-bit checksum.
  */
-int gdb_checksum(const char *buf, size_t len)
+static int gdb_checksum(const char *buf, size_t len)
 {
     unsigned char csum;
 
@@ -436,8 +446,8 @@ int gdb_checksum(const char *buf, size_t len)
  *    1   if the packet was transmitted but not acknowledged
  *    GDB_EOF otherwise
  */
-int gdb_send_packet(struct gdb_state *state, const char *pkt_data,
-                    size_t pkt_len)
+static int gdb_send_packet(struct gdb_state *state, const char *pkt_data,
+                           size_t pkt_len)
 {
     char buf[3];
     char csum;
@@ -485,8 +495,8 @@ int gdb_send_packet(struct gdb_state *state, const char *pkt_data,
  *    0   if the packet was received
  *    GDB_EOF otherwise
  */
-int gdb_recv_packet(struct gdb_state *state, char *pkt_buf, size_t pkt_buf_len,
-                    size_t *pkt_len)
+static int gdb_recv_packet(struct gdb_state *state, char *pkt_buf,
+                           size_t pkt_buf_len, size_t *pkt_len)
 {
     int data;
     char expected_csum, actual_csum;
@@ -574,7 +584,8 @@ int gdb_recv_packet(struct gdb_state *state, char *pkt_buf, size_t pkt_buf_len,
  *    0+  number of bytes written to buf
  *    GDB_EOF if the buffer is too small
  */
-int gdb_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len)
+static int gdb_enc_hex(char *buf, size_t buf_len, const char *data,
+                       size_t data_len)
 {
     size_t pos;
 
@@ -598,7 +609,8 @@ int gdb_enc_hex(char *buf, size_t buf_len, const char *data, size_t data_len)
  *    0   if successful
  *    GDB_EOF if the buffer is too small
  */
-int gdb_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len)
+static int gdb_dec_hex(const char *buf, size_t buf_len, char *data,
+                       size_t data_len)
 {
     size_t pos;
     int tmp;
@@ -639,7 +651,8 @@ int gdb_dec_hex(const char *buf, size_t buf_len, char *data, size_t data_len)
  *    0+  number of bytes written to buf
  *    GDB_EOF if the buffer is too small
  */
-int gdb_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len)
+static int gdb_enc_bin(char *buf, size_t buf_len, const char *data,
+                       size_t data_len)
 {
     size_t buf_pos, data_pos;
 
@@ -673,7 +686,8 @@ int gdb_enc_bin(char *buf, size_t buf_len, const char *data, size_t data_len)
  *    0+  if successful, number of bytes decoded
  *    GDB_EOF if the buffer is too small
  */
-int gdb_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len)
+static int gdb_dec_bin(const char *buf, size_t buf_len, char *data,
+                       size_t data_len)
 {
     size_t buf_pos, data_pos;
 
@@ -712,8 +726,8 @@ int gdb_dec_bin(const char *buf, size_t buf_len, char *data, size_t data_len)
  *    0+  number of bytes written to buf
  *    GDB_EOF if the buffer is too small
  */
-int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
-                 address addr, size_t len, gdb_enc_func enc)
+static int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
+                        address addr, size_t len, gdb_enc_func enc)
 {
     char data[64];
     size_t pos;
@@ -737,8 +751,9 @@ int gdb_mem_read(struct gdb_state *state, char *buf, size_t buf_len,
 /*
  * Write to memory from encoded buf.
  */
-int gdb_mem_write(struct gdb_state *state, const char *buf, size_t buf_len,
-                  address addr, size_t len, gdb_dec_func dec)
+static int gdb_mem_write(struct gdb_state *state, const char *buf,
+                         size_t buf_len, address addr, size_t len,
+                         gdb_dec_func dec)
 {
     char data[64];
     size_t pos;
@@ -788,7 +803,8 @@ int gdb_step(struct gdb_state *state)
 /*
  * Send OK packet
  */
-int gdb_send_ok_packet(struct gdb_state *state, char *buf, size_t buf_len)
+static int gdb_send_ok_packet(struct gdb_state *state, char *buf,
+                              size_t buf_len)
 {
     return gdb_send_packet(state, "OK", 2);
 }
@@ -796,8 +812,8 @@ int gdb_send_ok_packet(struct gdb_state *state, char *buf, size_t buf_len)
 /*
  * Send a message to the debugging console (via O XX... packet)
  */
-int gdb_send_conmsg_packet(struct gdb_state *state, char *buf, size_t buf_len,
-                           const char *msg)
+static int gdb_send_conmsg_packet(struct gdb_state *state, char *buf,
+                                  size_t buf_len, const char *msg)
 {
     size_t size;
     int status;
@@ -819,8 +835,8 @@ int gdb_send_conmsg_packet(struct gdb_state *state, char *buf, size_t buf_len,
 /*
  * Send a signal packet (S AA).
  */
-int gdb_send_signal_packet(struct gdb_state *state, char *buf, size_t buf_len,
-                           char signal)
+static int gdb_send_signal_packet(struct gdb_state *state, char *buf,
+                                  size_t buf_len, char signal)
 {
     size_t size;
     int status;
@@ -842,8 +858,8 @@ int gdb_send_signal_packet(struct gdb_state *state, char *buf, size_t buf_len,
 /*
  * Send a error packet (E AA).
  */
-int gdb_send_error_packet(struct gdb_state *state, char *buf, size_t buf_len,
-                          char error)
+static int gdb_send_error_packet(struct gdb_state *state, char *buf,
+                                 size_t buf_len, char error)
 {
     size_t size;
     int status;
@@ -873,7 +889,7 @@ int gdb_send_error_packet(struct gdb_state *state, char *buf, size_t buf_len,
  *    0   if successful
  *    GDB_EOF if failed to write all bytes
  */
-int gdb_write(struct gdb_state *state, const char *buf, size_t len)
+static int gdb_write(struct gdb_state *state, const char *buf, size_t len)
 {
     while (len--) {
         if (gdb_sys_putchar(state, *buf++) == GDB_EOF) {
@@ -891,7 +907,8 @@ int gdb_write(struct gdb_state *state, const char *buf, size_t len)
  *    0   if successfully read len bytes
  *    GDB_EOF if failed to read all bytes
  */
-int gdb_read(struct gdb_state *state, char *buf, size_t buf_len, size_t len)
+static int gdb_read(struct gdb_state *state, char *buf, size_t buf_len,
+                    size_t len)
 {
     char c;
 
@@ -1328,17 +1345,18 @@ extern void const * const gdb_x86_int_handlers[];
  * Prototypes
  ****************************************************************************/
 
-void gdb_x86_hook_idt(uint8_t vector, const void *function);
-void gdb_x86_init_gates(void);
-void gdb_x86_init_idt(void);
-void gdb_x86_load_idt(struct gdb_idtr *idtr);
-void gdb_x86_store_idt(struct gdb_idtr *idtr);
-uint32_t gdb_x86_get_cs(void);
 void gdb_x86_int_handler(struct gdb_interrupt_state *istate);
-void gdb_x86_interrupt(struct gdb_interrupt_state *istate);
-void gdb_x86_io_write_8(uint16_t port, uint8_t val);
-uint8_t gdb_x86_io_read_8(uint16_t port);
-void *gdb_x86_sys_memset(void *ptr, int data, size_t len);
+
+static void gdb_x86_hook_idt(uint8_t vector, const void *function);
+static void gdb_x86_init_gates(void);
+static void gdb_x86_init_idt(void);
+static void gdb_x86_load_idt(struct gdb_idtr *idtr);
+static void gdb_x86_store_idt(struct gdb_idtr *idtr);
+static uint32_t gdb_x86_get_cs(void);
+static void gdb_x86_interrupt(struct gdb_interrupt_state *istate);
+static void gdb_x86_io_write_8(uint16_t port, uint8_t val);
+static uint8_t gdb_x86_io_read_8(uint16_t port);
+static void *gdb_x86_sys_memset(void *ptr, int data, size_t len);
 
 #ifdef __STRICT_ANSI__
 #define asm __asm__
@@ -1361,7 +1379,7 @@ static struct gdb_state    gdb_state;
  * Misc. Functions
  ****************************************************************************/
 
-void *gdb_x86_sys_memset(void *ptr, int data, size_t len)
+static void *gdb_x86_sys_memset(void *ptr, int data, size_t len)
 {
     char *p = ptr;
 
@@ -1375,7 +1393,7 @@ void *gdb_x86_sys_memset(void *ptr, int data, size_t len)
 /*
  * Get current code segment (CS register).
  */
-uint32_t gdb_x86_get_cs(void)
+static uint32_t gdb_x86_get_cs(void)
 {
     uint32_t cs;
 
@@ -1397,7 +1415,7 @@ uint32_t gdb_x86_get_cs(void)
 /*
  * Initialize idt_gates with the interrupt handlers.
  */
-void gdb_x86_init_gates(void)
+static void gdb_x86_init_gates(void)
 {
     size_t   i;
     uint16_t cs;
@@ -1416,7 +1434,7 @@ void gdb_x86_init_gates(void)
 /*
  * Load a new IDT.
  */
-void gdb_x86_load_idt(struct gdb_idtr *idtr)
+static void gdb_x86_load_idt(struct gdb_idtr *idtr)
 {
     asm volatile (
         "lidt    %0"
@@ -1429,7 +1447,7 @@ void gdb_x86_load_idt(struct gdb_idtr *idtr)
 /*
  * Get current IDT.
  */
-void gdb_x86_store_idt(struct gdb_idtr *idtr)
+static void gdb_x86_store_idt(struct gdb_idtr *idtr)
 {
     asm volatile (
         "sidt    %0"
@@ -1442,7 +1460,7 @@ void gdb_x86_store_idt(struct gdb_idtr *idtr)
 /*
  * Hook a vector of the current IDT.
  */
-void gdb_x86_hook_idt(uint8_t vector, const void *function)
+static void gdb_x86_hook_idt(uint8_t vector, const void *function)
 {
     struct gdb_idtr      idtr;
     struct gdb_idt_gate *gates;
@@ -1458,7 +1476,7 @@ void gdb_x86_hook_idt(uint8_t vector, const void *function)
 /*
  * Initialize IDT gates and load the new IDT.
  */
-void gdb_x86_init_idt(void)
+static void gdb_x86_init_idt(void)
 {
     struct gdb_idtr idtr;
 
@@ -1479,7 +1497,7 @@ void gdb_x86_int_handler(struct gdb_interrupt_state *istate)
 /*
  * Debug interrupt handler.
  */
-void gdb_x86_interrupt(struct gdb_interrupt_state *istate)
+static void gdb_x86_interrupt(struct gdb_interrupt_state *istate)
 {
     gdb_x86_sys_memset(&gdb_state.registers, 0, sizeof(gdb_state.registers));
 
@@ -1536,7 +1554,7 @@ void gdb_x86_interrupt(struct gdb_interrupt_state *istate)
 /*
  * Write to I/O port.
  */
-void gdb_x86_io_write_8(uint16_t port, uint8_t val)
+static void gdb_x86_io_write_8(uint16_t port, uint8_t val)
 {
     asm volatile (
         "outb    %%al, %%dx;"
@@ -1549,7 +1567,7 @@ void gdb_x86_io_write_8(uint16_t port, uint8_t val)
 /*
  * Read from I/O port.
  */
-uint8_t gdb_x86_io_read_8(uint16_t port)
+static uint8_t gdb_x86_io_read_8(uint16_t port)
 {
     uint8_t val;
 
@@ -1571,14 +1589,14 @@ uint8_t gdb_x86_io_read_8(uint16_t port)
 #define SERIAL_RBR 0
 #define SERIAL_LSR 5
 
-int gdb_serial_getc(void)
+static int gdb_x86_serial_getc(void)
 {
     /* Wait for data */
     while ((gdb_x86_io_read_8(SERIAL_PORT + SERIAL_LSR) & 1) == 0);
     return gdb_x86_io_read_8(SERIAL_PORT + SERIAL_RBR);
 }
 
-int gdb_serial_putchar(int ch)
+static int gdb_x86_serial_putchar(int ch)
 {
     /* Wait for THRE (bit 5) to be high */
     while ((gdb_x86_io_read_8(SERIAL_PORT + SERIAL_LSR) & (1<<5)) == 0);
@@ -1595,7 +1613,7 @@ int gdb_serial_putchar(int ch)
  */
 int gdb_sys_putchar(struct gdb_state *state, int ch)
 {
-    return gdb_serial_putchar(ch);
+    return gdb_x86_serial_putchar(ch);
 }
 
 /*
@@ -1603,7 +1621,7 @@ int gdb_sys_putchar(struct gdb_state *state, int ch)
  */
 int gdb_sys_getc(struct gdb_state *state)
 {
-    return gdb_serial_getc() & 0xff;
+    return gdb_x86_serial_getc() & 0xff;
 }
 
 /*
