@@ -27,6 +27,7 @@ OBJCOPY      = objcopy
 BASE_ADDRESS = 0x500000
 TARGET       = gdbstub.bin
 OBJECTS      = gdbstub.o
+INCLUDE_DEMO ?= 0
 
 ifeq ($(ARCH),mock)
 CFLAGS += -DGDBSTUB_ARCH_MOCK
@@ -35,10 +36,10 @@ INCLUDE_DEMO = 0
 else
 GENERATED += gdbstub.elf gdbstub.ld
 ifeq ($(ARCH),x86)
-CFLAGS  += -Os -m32 -fno-stack-protector -DGDBSTUB_ARCH_X86
+CFLAGS  += -Os -m32 -fno-stack-protector -DGDBSTUB_ARCH_X86 \
+           -DINCLUDE_DEMO=$(INCLUDE_DEMO)
 LDFLAGS += -m elf_i386
 OBJECTS += gdbstub_x86_int.o
-INCLUDE_DEMO = 1
 else
 $(error Please specify a supported architecture)
 endif
